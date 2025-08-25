@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slow Typing </title>
+
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+</head>
+<body>
+  <!-- Name Input Screen -->
+  <div id="nameInputScreen">
+    <h1>Welcome to slow Typing Game</h1>
+    <h2>i bet you can't even get passed 10 words</h2>
+    <p>Please enter your name to start:</p>
+    <input type="text" id="nameInput" placeholder="Enter your name..." />
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <!-- Main Game Screen -->
+  <div id="gameContainer" class="hidden">
+    <h1>Speed Typing Game</h1>
+    <p id="timerDisplay">Time Left: <span id="timer">4</span>s</p>
+    <p id="wordToType">Word: <span id="word"></span></p>
+    <input type="text" id="wordInput" placeholder="Type here..." />
+    <div id="scoreboard">
+      <h3>Scoreboard</h3>
+      <ul id="scoreList"></ul>
+    </div>
+    <div id="adsContainer"></div>
+    <div id="message" class="smallMessage">$n!per was here</div>
+  </div>
+
+  <button id="restartBtn" class="hidden">Restart</button>
+
+  <script src="game.js"></script>
+  
+<style>
+/* Global Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #000000;
+  color: #00ffff;
+  padding: 30px;
+}
+
+/* Hide Elements */
+.hidden {
+  display: none;
+}
+
+/* Neon Glow Helper Classes */
+.neon-text {
+  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+}
+
+.neon-pink {
+  color: #ff00c8;
+  text-shadow: 0 0 5px #ff00c8, 0 0 10px #ff00c8, 0 0 20px #ff00c8;
+}
+
+.neon-yellow {
+  color: #ffff00;
+  text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00, 0 0 20px #ffff00;
+}
+
+/* Name Input Screen */
+#nameInputScreen {
+  text-align: center;
+  background-color: #111;
+  padding: 40px;
+  border-radius: 16px;
+  border: 1px solid #00ffff66;
+  box-shadow: 0 0 20px #00ffff33;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+#nameInputScreen h1 {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+  color: #00ffff;
+  text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+}
+
+#nameInputScreen h2 {
+  font-size: 1.2rem;
+  color: #ff00c8;
+  margin-bottom: 20px;
+  text-shadow: 0 0 8px #ff00c8;
+}
+
+#nameInput {
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: none;
+  width: 70%;
+  max-width: 300px;
+  background: #000;
+  color: #00ffff;
+  border: 2px solid #00ffff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#startBtn {
+  background-color: #00ffff;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 0 12px #00ffff;
+}
+
+#startBtn:hover {
+  background-color: #00cccc;
+  box-shadow: 0 0 20px #00ffff;
+}
+
+/* Game Container */
+#gameContainer {
+  text-align: center;
+  padding: 40px;
+  background-color: #111;
+  border-radius: 16px;
+  box-shadow: 0 0 30px #00ffff33;
+  border: 1px solid #00ffff33;
+  max-width: 600px;
+  margin: 30px auto;
+}
+
+#gameContainer h1 {
+  font-size: 2.3rem;
+  color: #00ffff;
+  text-shadow: 0 0 12px #00ffff;
+}
+
+#timerDisplay {
+  font-size: 1.2rem;
+  margin: 15px 0;
+  color: #ffff00;
+  text-shadow: 0 0 8px #ffff00;
+}
+
+#wordToType {
+  font-size: 1.8rem;
+  margin: 25px 0;
+}
+
+#word {
+  color: #ff00c8;
+  font-weight: bold;
+  text-shadow: 0 0 10px #ff00c8;
+}
+
+#wordInput {
+  padding: 12px;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  border: 2px solid #ff00c8;
+  background-color: #000;
+  color: #ff00c8;
+  box-shadow: 0 0 10px #ff00c8;
+  width: 70%;
+  max-width: 400px;
+}
+
+/* Scoreboard */
+#scoreboard {
+  margin-top: 30px;
+  background-color: #000000;
+  border: 1px solid #444;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#scoreboard h3 {
+  font-size: 1.3rem;
+  color: #ffff00;
+  text-shadow: 0 0 8px #ffff00;
+}
+
+#scoreList {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+#scoreList li {
+  font-size: 1rem;
+  color: #ffffffcc;
+  padding: 4px 0;
+}
+
+/* Restart Button */
+#restartBtn {
+  margin: 25px auto;
+  display: block;
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #ff00c8;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 15px #ff00c8;
+  transition: all 0.2s ease;
+}
+
+#restartBtn:hover {
+  box-shadow: 0 0 25px #ff00c8, 0 0 5px #fff;
+}
+
+/* Ads Placeholder */
+#adsContainer {
+  margin-top: 20px;
+  height: 60px;
+  background-color: #222;
+  border: 1px dashed #444;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+/* Hidden Message */
+#message {
+  margin-top: 20px;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.05);
+  user-select: none;
+  text-align: right;
+}
+
+
+</style>
+</body>
+</html>
+
+
+
+<script>
+    const wordInput = document.getElementById('wordInput');
+const wordEl = document.getElementById('word');
+const timerEl = document.getElementById('timer');
+const restartBtn = document.getElementById('restartBtn');
+const scoreboardEl = document.getElementById('scoreList');
+const adsContainer = document.getElementById('adsContainer');
+const adCloseBtn = document.createElement('button');
+adCloseBtn.id = "adCloseBtn";
+adCloseBtn.textContent = "Close Ad";
+
+const nameInputScreen = document.getElementById('nameInputScreen');
+const nameInput = document.getElementById('nameInput');
+const startBtn = document.getElementById('startBtn');
+const gameContainer = document.getElementById('gameContainer');
+
+let words = [
+  "money", "doh", "cat", "hat", "bird", "word", "dirt", "hurt", "mike", "dog", "onomatopoeia",
+  "supercalifragilisticexpialidocious", "screen", "hike", "bike", "sun", "moon", "wait", "date", "snake", "apple", "bone", 
+  "cone", "hat", "sat", "rat", "hip", "cherry", "mango", "kiwi", "peach", "grape", 
+  "plum", "melon", "orange", "pear", "watermelon", "lime", "lemon", "blueberry", "berry", 
+  "papaya", "banana", "apricot", "avocado", "tangerine", "strawberry", "chocolate", "vanilla", 
+  "coffee", "tea", "milk", "sugar", "bread", "butter", "cheese", "tomato", "onion", "garlic", 
+  "potato", "lettuce", "spinach", "carrot", "cucumber", "pepper", "salt", "rice", "pasta", 
+  "noodle", "egg", "chicken", "beef", "pork", "lamb", "turkey", "fish", "shrimp", "crab", 
+  "clam", "mushroom", "soup", "salad", "pizza", "burger", "fries", "taco", "burrito", "nacho", 
+  "sushi", "ramen", "dumpling", "ketchup", "mustard", "mayonnaise", "pickle", "sauce", 
+  "spaghetti", "lasagna", "sandwich", "toast", "bagel", "croissant", "cookie", "cake", "pie", 
+  "candy", "cherry", "grape", "lemonade", "soda", "beer", "wine", "whiskey", "vodka", "rum", 
+  "gin", "tequila", "champagne", "cocktail", "smoothie", "juice", "water", "ice", "salt", 
+  "sugar", "spice", "herb", "cinnamon", "nutmeg", "clove", "ginger", "oregano", "basil", 
+  "rosemary", "thyme", "mint", "parsley", "sage", "cumin", "paprika", "turmeric", "chili", 
+  "curry", "mustard", "soy", "vinegar", "oil", "butter", "margarine", "cream", "honey", 
+  "maple", "agave", "molasses", "caramel", "whipped", "frosting", "icing", "glaze", "syrup", 
+  "sauce", "jam", "jelly", "marmalade", "preserve", "confection", "dessert", "treat", 
+  "delicacy", "sweet", "bitter", "salty", "sour", "umami", "spicy", "hot", "cold", "fresh", 
+  "frozen", "cooked", "raw", "ripe", "unripe", "fresh", "stale", "burnt", "boiled", "fried", 
+  "grilled", "roasted", "steamed", "baked", "sautéed", "broiled", "poached", "seared", "simmered",
+  
+  // Animals
+  "lion", "tiger", "bear", "zebra", "giraffe", "elephant", "koala", "kangaroo", "panda", "sloth", 
+  "hippopotamus", "rhinoceros", "dolphin", "whale", "shark", "octopus", "squid", "jellyfish", "crab", 
+  "lobster", "fish", "seal", "otter", "penguin", "eagle", "hawk", "falcon", "parrot", "pigeon", 
+  "sparrow", "owl", "bat", "swan", "duck", "goose", "turkey", "pheasant", "peacock", "chicken", 
+  "rooster", "hen", "duckling", "calf", "puppy", "kitten", "lamb", "colt", "foal", "chick", "rabbit", 
+  "hamster", "guinea pig", "gerbil", "hedgehog", "ferret", "rat", "mouse", "snake", "lizard", "gecko", 
+  "frog", "toad", "newt", "salamander", "turtle", "beetle", "ant", "butterfly", "moth", "fly", "bee", 
+  "wasp", "dragonfly", "ladybug", "cockroach", "spider", "scorpion", "centipede", "millipedeclean",
+  
+  // Colors
+  "red", "blue", "green", "yellow", "purple", "orange", "pink", "brown", "black", "white", "gray", 
+  "beige", "indigo", "violet", "lavender", "turquoise", "aqua", "teal", "maroon", "gold", "silver", 
+  "copper", "bronze", "peach", "ivory", "charcoal", "emerald", "jade", "amber", "ruby", "sapphire", 
+  "diamond", "platinum", "pearl", "coral", "fuchsia", "crimson", "scarlet", "burgundy", "mint", 
+  "lime", "seafoam", "lemon", "sunset", "cherry", "sky", "cloud", "forest", "earth", "water", "fire", 
+  "sand", "snow", "rain", "storm", "sunshine", "twilight", "midnight", "morning", "noon", "dawn", 
+  "dusk", "autumn", "winter", "spring", "summer", "fall", "tangerine", "mustard", "peach", "olive", 
+  "blush", "ruby", "amber", "cerulean", "mint", "rose", "berry", "coffee", "almond", "maple", "cobalt", 
+  "electric", "neon", "pearl", "chalk", "mocha", "saffron", "berry", "caramel",
+  
+  // Objects
+  "table", "chair", "sofa", "couch", "bed", "lamp", "fan", "mirror", "clock", "window", "door", 
+  "desk", "book", "notebook", "pen", "pencil", "marker", "eraser", "paper", "scissors", "tape", 
+  "stapler", "clipboard", "folder", "printer", "laptop", "keyboard", "mouse", "monitor", "headphones", 
+  "phone", "television", "radio", "speaker", "camera", "tripod", "flashlight", "remote", "charger", 
+  "battery", "adapter", "extension", "cord", "plug", "socket", "bulb", "battery", "outlet", "plug", 
+  "brush", "comb", "mirror", "shampoo", "soap", "toothbrush", "toothpaste", "razor", "towel", "robe", 
+  "shower", "tub", "bathtub", "sink", "faucet", "drain", "mat", "toilet", "toilet paper", "plunger", 
+  "soap", "detergent", "cleaner", "wiper", "mop", "broom", "bucket", "sponge", "cloth", "scouring pad", 
+  "glove", "dustpan", "sponge", "scrubber", "cleaner", "brush", "cleaning wipes", "bleach",
+  
+  // Nature and Outdoors
+  "mountain", "hill", "valley", "river", "stream", "creek", "lake", "ocean", "sea", "beach", "desert", 
+  "forest", "wood", "jungle", "savannah", "plain", "cliff", "canyon", "waterfall", "pond", "swamp", 
+  "bog", "cave", "desert", "prairie", "oasis", "island", "archipelago", "peninsula", "bay", "gulf", 
+  "reef", "tide", "current", "wave", "shore", "coast", "sand", "rock", "boulder", "pebble", "stone", 
+  "dune", "hill", "bluff", "mesa", "plateau", "valley", "swamp", "grassland", "rainforest", "tundra", 
+  "glacier", "volcano", "geyser", "hot spring", "mud", "snow", "hail", "cloud", "wind", "breeze", 
+  "storm", "hurricane", "thunder", "lightning", "tornado", "earthquake", "tsunami", "drought", "flood", 
+  "avalanche", "fire", "ash", "embers", "charcoal", "coal", "smoke", "embers", "campfire", "firepit", 
+  "marsh", "swamp", "bog", "moss", "fern", "thicket", "brush", "vine", "weed", "flower", "bloom", 
+  "petal", "stem", "leaf", "root", "bark", "seed", "acorn", "pinecone", "oak", "birch", "maple", "spruce", 
+  "fir", "cedar", "redwood", "sequoia", "palm", "coconut", "banana leaf", "magnolia", "orchid", 
+  "lily", "daisy", "sunflower", "rose", "tulip", "violet", "poppy", "marigold", "cherry blossom",
+  // Pre-existing words here (from previous examples)
+  
+  // Additional Words
+  "abacus", "abandon", "abduction", "abnormal", "abolish", "abrasion", "absent", "absurd", "abundance", "academy", 
+  "acceleration", "accept", "access", "accident", "accomplish", "account", "accuse", "achieve", "acquire", "adage",
+  "addition", "address", "advance", "adventure", "advertise", "advice", "affair", "affect", "afford", "against",
+  "aggressive", "alchemist", "alcohol", "allegiance", "alliance", "allusion", "alternative", "aluminum", "amazing", "ambition",
+  "analyze", "ancient", "animal", "anthem", "apologize", "appeal", "apple", "approve", "argue", "arrange",
+  "artistic", "assemble", "assault", "assert", "assess", "assign", "assist", "assure", "athlete", "attempt",
+  "attend", "attention", "attract", "average", "awesome", "balance", "ballet", "barrier", "beautify", "benefit", 
+  "bicycle", "biology", "blessing", "bottle", "boundary", "brilliant", "broadcast", "breathe", "brother", "brutal",
+  "cactus", "calendar", "capture", "caring", "carpet", "cattle", "ceremony", "chamber", "chaos", "charity",
+  "chicken", "circular", "classic", "climate", "combat", "comfort", "compete", "conscious", "control", "corrupt", 
+  "costume", "create", "crystal", "cultural", "defend", "demand", "decorate", "discover", "dynamic", "dynamo",
+  "earnings", "eclipse", "education", "electric", "element", "eliminate", "embrace", "emergency", "energy", "enjoy",
+  "enlist", "environment", "erase", "exact", "exception", "excuse", "explore", "express", "extreme", "evolution",
+  "fabric", "famine", "famous", "fascinate", "fashion", "festival", "fiction", "fistful", "flavor", "flicker",
+  "folklore", "fortune", "frequent", "future", "gather", "genetic", "gesture", "glamour", "glory", "golf",
+  "happiness", "harbor", "harmony", "heroic", "hiking", "horizon", "huddle", "hurricane", "hygiene", "hypothesis", 
+  "idolize", "influence", "inject", "island", "issue", "jungle", "justice", "kernel", "kettle", "kingdom",
+  "lament", "laughter", "legend", "lecture", "library", "lifetime", "literacy", "lively", "location", "luggage",
+  "machine", "mansion", "manual", "market", "memory", "modern", "motive", "mystery", "natural", "navigate",
+  "obstacle", "occur", "official", "onward", "origin", "outcome", "output", "overcome", "overlook", "parcel",
+  "patient", "planet", "plaster", "plenty", "polar", "positive", "posture", "practical", "predict", "preference",
+  "prison", "problem", "process", "project", "progress", "prolong", "promise", "provide", "purpose", "quaint",
+  "quality", "question", "quickly", "quota", "quaint", "rebuild", "reduce", "reflect", "reignite", "reliance",
+  "remind", "repair", "rescue", "reside", "respect", "revival", "revive", "reward", "robust", "routine",
+  "safety", "salvage", "scramble", "seemingly", "select", "sensation", "serenity", "sermon", "shadow", "shuttle",
+  "skylight", "slipstream", "solar", "sphere", "spinal", "spoonful", "stable", "stagnant", "stamina", "strength",
+  "stumble", "succeed", "summit", "superior", "surround", "survey", "symbolic", "system", "tactical", "temple",
+  "tendency", "tension", "territory", "theory", "tolerate", "tradition", "treasure", "triangle", "trophy", "unite",
+  "unique", "universe", "update", "upgrade", "utopian", "vacuum", "valuable", "venture", "verdict", "victory",
+  "village", "visual", "vocal", "voluntary", "vortex", "warrior", "whistle", "wonder", "worship", "zombie",
+  
+  // Additional words from more categories 
+  "album", "asparagus", "architect", "apron", "astronomy", "autograph", "awaken", "baking", "balloon", "barn",
+  "batter", "benefactor", "bicycle", "birch", "blanket", "blossom", "bottled", "bow", "bracelet", "brisk",
+  "brush", "butler", "caboose", "calf", "canvas", "canyon", "casket", "caterpillar", "celebrate", "cell",
+  "charter", "chimney", "cicada", "circuit", "clarity", "clay", "clever", "client", "coal", "coconut",
+  "cylinder", "defuse", "digging", "dimple", "dough", "drift", "drum", "duct", "dusk", "endure", "equator",
+  "feather", "field", "fifty", "flask", "fluff", "folly", "fool", "fracture", "furnace", "gadgets", "gilded",
+  "glacier", "glimpse", "glisten", "glow", "golden", "golf", "grand", "guitar", "hairbrush", "halyard", "haste",
+  "hatch", "hermit", "hoop", "hover", "hype", "ignition", "inlay", "inquire", "irony", "island", "jackpot",
+  "jiffy", "jungle", "joker", "jolly", "lattice", "launch", "lilac", "luggage", "magnet", "manuscript", "mason",
+  "melodic", "monarch", "mosaic", "mug", "nudge", "necklace", "nibble", "noble", "nugget", "nostalgia",
+  "octave", "opal", "orchestra", "overflow", "oxen", "palette", "party", "parade", "pendulum", "pebble",
+  "plaster", "pixel", "plow", "plump", "pose", "prune", "puzzle", "quilt", "riddle", "roster", "saddle",
+  "scrabble", "scarcity", "screech", "slink", "smooth", "squirrel", "stir", "symmetry", "trumpet", "twig",
+  "tumble", "universe", "vapor", "vocal", "wedge", "whistle", "wristband", "zigzag","abandonment", "abbreviate", "absurdity", "acclaim", "accommodate", "accountable", "accuse", "adaptation", "addition", "admission",
+  "adore", "advice", "affection", "affordable", "aggressive", "allege", "alliance", "allegory", "ambition", "ameliorate",
+  "analyse", "ancestors", "anatomy", "angelic", "anxiety", "appeal", "appetizer", "applejack", "appoint", "appreciate",
+  "approach", "arbitrary", "argument", "arrange", "arrivals", "artistry", "assist", "associates", "assurance", "athlete",
+  "attitude", "audible", "balance", "ballad", "banknote", "barnyard", "beacon", "become", "belong", "benefit",
+  "bespoke", "bicycle", "billboard", "biography", "blasphemy", "bliss", "blizzard", "blowtorch", "boredom", "bottlecap",
+  "boundary", "brisk", "brilliant", "brotherhood", "cabbage", "calculations", "cactus", "calculation", "camera", "capable",
+  "caring", "carpet", "catastrophe", "celebration", "century", "charisma", "chemistry", "chickenpox", "chisel", "clarity",
+  "cliché", "clothing", "clumsiness", "coffeehouse", "comfort", "complete", "consciousness", "consonance", "continuous", "control",
+  "courageous", "dapper", "dangerous", "dawn", "defensive", "delight", "denial", "denote", "depression", "desire",
+  "destruction", "diamond", "diplomatic", "dollhouse", "dominate", "doppelganger", "drought", "dynamite", "eagle", "earthquake",
+  "empathy", "endorse", "energy", "enlighten", "enrich", "envelope", "esoteric", "essential", "essence", "examine",
+  "explosive", "express", "family", "fastidious", "fashionable", "favorable", "flawless", "fluent", "foreigner", "fortitude",
+  "fortunate", "furnish", "gathering", "gentleman", "gleam", "glimmer", "glow", "glowing", "governor", "guitarist",
+  "harmony", "harrowing", "healthcare", "heroism", "hike", "horizon", "hospitality", "hypothesis", "identity", "imagination",
+  "impactful", "imposter", "incredible", "innocent", "integrity", "interview", "intimacy", "invitation", "isolated", "jovial",
+  "jungle", "jumbled", "keystone", "kickstart", "kingdom", "labyrinth", "laughter", "leisure", "loyalty", "magician",
+  "meditate", "melodic", "metaphor", "modular", "momentum", "mystical", "mysterious", "navigator", "narrative", "nightfall",
+  "nonchalant", "omniscient", "optimistic", "panoramic", "paradise", "peachy", "perception", "perseverance", "perpetual", "photogenic",
+  "pineapple", "plasticity", "political", "powerful", "prairie", "prevalent", "presidential", "protection", "pursuit", "recharge",
+  "reincarnate", "rejuvenate", "relativity", "relish", "reproduce", "saturation", "savior", "serenity", "simultaneous", "skyward",
+  "socialize", "spontaneous", "stable", "struggle", "stability", "subtle", "sudden", "sufficient", "superstar", "synergy",
+  "takeoff", "tangible", "temperament", "terrestrial", "thrive", "treasure", "trophy", "turbulent", "undisturbed", "unified",
+  "unity", "universe", "valuable", "vibrant", "vigilance", "vocalist", "warmth", "wonderment", "workmanship", "zealous",
+  "zenith", "zigzag", "zone", "abbreviate", "abstract", "accessible", "accurate", "alleviate", "balance", "benefit", "breathe",
+  "calculate", "complicated", "demonstrate", "determine", "effort", "enhance", "explore", "fictional", "flexible", "forward",
+  "gather", "growth", "inspire", "intrigue", "motivate", "observe", "organize", "outlook", "outreach", "perspective",
+  "plunge", "possible", "present", "progress", "prolific", "profound", "refine", "renew", "resolve", "revive",
+  "sentiment", "transform", "ultimate", "unveil", "wonders", "vocabulary", "venture", "vibrancy", "visionary",
+  
+  // More Animals and Nature
+  "aardvark", "albatross", "antelope", "armadillo", "badger", "bison", "boar", "buffalo", "camel", "caribou", 
+  "caterpillar", "cheetah", "chipmunk", "cockatoo", "dingo", "dodo", "dugong", "elk", "ferret", "fox", 
+  "gazelle", "giraffe", "goose", "guinea pig", "hare", "hedgehog", "hippopotamus", "impala", "kangaroo", "lemur", 
+  "lioness", "marmot", "meerkat", "moose", "mongoose", "nightingale", "ocelot", "opossum", "orangutan", "otter",
+  "piranha", "platypus", "porcupine", "quail", "raccoon", "ram", "reindeer", "ringtail", "roadrunner", "scorpion", 
+  "sea lion", "shark", "shrew", "shrimp", "skunk", "sloth", "snail", "swan", "termite", "thrush", "toucan",
+  "turtle", "vulture", "wallaby", "walrus", "warthog", "weasel", "whale", "woodpecker", "zebra", "zebu",
+  
+  // More Colors
+  "aqua", "azure", "chartreuse", "cobalt", "cream", "emerald", "fuchsia", "indigo", "ivory", "lemon", "lime",
+  "mauve", "navy", "olive", "peach", "periwinkle", "plum", "ruby", "salmon", "sapphire", "scarlet", "turquoise",
+  "violet", "white", "yellow", "zinnia", "beige", "black", "blush", "cinnamon", "copper", "coral", "cranberry",
+  "eggplant", "emerald", "gray", "green", "jade", "lavender", "maroon", "mint", "mocha", "mulberry", "mustard",
+  "obsidian", "peach", "pear", "pistachio", "rose", "ruby", "sand", "silver", "sky", "slate", "squid ink",
+  "tangerine", "topaz", "vermillion", "watermelon", "yellow", "zesty",
+  
+  // More Objects and Miscellaneous
+  "abacus", "accordion", "airplane", "anchor", "arrow", "ashtray", "atlas", "baking soda", "balcony", "barbell", 
+  "baseball", "basket", "bicycle", "binoculars", "blanket", "bottle", "bowtie", "brass", "bricks", "broom", 
+  "candle", "calculator", "camera", "candy", "cactus", "candy cane", "catapult", "cellphone", "chandelier", "clothesline",
+  "coin", "comic", "controller", "cookie", "couch", "cupboard", "cushion", "dartboard", "desktop", "diamond",
+  "dustpan", "earphones", "electricity", "engine", "eraser", "fan", "furniture", "glove", "guitar", "hammock",
+  "jigsaw", "keyboard", "lamp", "laptop", "magnet", "mirror", "nail", "necklace", "notebook", "padlock",
+  "paintbrush", "pan", "phone", "plate", "puzzle","accordion", "admission", "advertisement", "adventure", "agility", "alchemist", "ancient", "apocalypse", "applicant", "appreciation",
+  "arithmetic", "aspiration", "assistance", "astronomy", "attraction", "ballad", "barnyard", "basilica", "beacon", "beneficiary", 
+  "binary", "blissful", "bombshell", "broadcast", "brilliance", "buffet", "calculation", "candlestick", "cartridge", "celebration", 
+  "champion", "chlorophyll", "circular", "clerk", "cottage", "creative", "culture", "dartboard", "deck", "delightful", 
+  "detective", "dilemma", "diplomat", "discovery", "distraction", "diverse", "dynamic", "effort", "emerald", "endurance", 
+  "enchanted", "enlighten", "episode", "equator", "esoteric", "examine", "experience", "extraordinary", "facet", "fascinating", 
+  "feline", "fertility", "fiesta", "fishing", "floral", "fluctuate", "fortress", "frosty", "gathering", "giraffe", 
+  "glimmer", "grandiose", "grapevine", "harmony", "historical", "impactful", "imposter", "incense", "incredible", "inquire", 
+  "inspire", "intrepid", "jewelry", "journey", "kingdom", "leopard", "literature", "mystical", "opulent", "outreach", 
+  "paradise", "penultimate", "perfection", "persistence", "platinum", "progress", "radiant", "realm", "reflect", "regal", 
+  "sacrifice", "sapphire", "satellite", "serenity", "serpent", "shimmer", "smile", "spirit", "sublime", "sundown", 
+  "surreal", "tangible", "thunderstorm", "tiger", "turbulent", "tweezers", "ultimate", "universe", "vibrant", "vigilance", 
+  "whisper", "winter", "woodland", "zenith", "zodiac", "adore", "ambrosia", "apricot", "autumn", "banter", 
+  "bargain", "blazing", "briskly", "camouflage", "cheese", "clockwise", "clutch", "compass", "conquer", "cupcake", 
+  "delicate", "desolate", "dune", "dusk", "dynamo", "feather", "ferret", "flood", "fluffy", "frequency", 
+  "gigantic", "glue", "inspire", "intellectual", "lemonade", "luminous", "melodious", "mimic", "monarch", "murky", 
+  "mythical", "obscure", "odyssey", "permanent", "ponder", "rare", "radiate", "reconcile", "reluctant", "resplendent", 
+  "rustic", "serene", "silence", "sleek", "spontaneous", "starlight", "stoic", "synergy", "taciturn", "triumph", 
+  "tropical", "unearth", "verdant", "visionary", "vivid", "whimsical", "wildflower", "zigzag", "acoustic", "ancestors", 
+  "bamboo", "bargain", "bitter", "button", "candle", "compass", "courageous", "courtesy", "crystal", "defend", 
+  "dialogue", "embassy", "encounter", "epic", "flagstone", "flavorful", "frozen", "glow", "hologram", "lunar", 
+  "majesty", "mountain", "mystery", "nectar", "noble", "nocturnal", "orchid", "oxygen", "parade", "peculiar", 
+  "profound", "radiance", "reef", "remedy", "revolt", "route", "serpent", "spectrum", "spectacular", "sundown", 
+  "undisturbed", "voyage", "whisper", "willow", "wither", "yonder", "zeal", "alpha", "ambush", "astrology", 
+  "boulder", "caliber", "canyon", "caterpillar", "frost", "gravel", "heaven", "mystic", "oxygen", "pioneering", 
+  "whimsical", "hoopla", "hurricane", "global", "mantle", "immense", "infinite", "immunity", "jewel", "tracer", 
+  "vegetation", "weaving", "zephyr", "zygote", "alchemy", "bison", "blanket", "brisk", "celestial", "enigma", 
+  "elephant", "ethereal", "festival", "flicker", "forest", "glisten", "gnome", "harbor", "holograph", "kaleidoscope",
+  "spontaneous", "stargaze", "enlighten", "turbulence", "puzzle", "redemption", "tension", "rush", "teardrop", 
+  "muse", "candlelight", "cobalt", "stratosphere", "convergence", "essence", "fauna", "chimera", "tangle", "glimmer",
+  "peaceful", "significant", "inspire", "awe", "serenity", "rejuvenate", "ethereal", "fantasy", "mysticism", "vision",
+  "seashell", "silk", "crystal", "imagination", "opulent", "whirlwind", "stellar", "sorcery", "wooden", "rainforest",
+];
+
+let score = 0;
+let currentWord = '';
+let timer = 4;
+let timerInterval;
+let typingInterval;
+let adsInterval;
+let gameOver = false;
+let playerName = '';
+
+// Scoreboard array
+let scoreboard = [];
+
+function startGame() {
+  // Hide the name input screen
+  playerName = nameInput.value.trim();
+  if (!playerName) {
+    alert("Please enter a valid name to start the game!");
+    return;
+  }
+
+  nameInputScreen.classList.add('hidden');
+  gameContainer.classList.remove('hidden');
+  
+  gameOver = false;
+  score = 0;
+  updateScoreboard();
+  startTimer();
+  generateWord();
+  wordInput.disabled = false;
+  wordInput.value = "";
+  wordInput.focus();
+  restartBtn.classList.add('hidden');
+  timerEl.textContent = timer;
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    if (timer > 0) {
+      timer--;
+      timerEl.textContent = timer;
+    } else {
+      endGame('Time\'s up! You lost.');
+    }
+  }, 1000);
+}
+
+function generateWord() {
+  currentWord = words[Math.floor(Math.random() * words.length)];
+  wordEl.textContent = currentWord;
+  wordInput.value = "";
+  clearInterval(typingInterval);
+  typingInterval = setTimeout(() => {
+    if (wordInput.value !== currentWord) {
+      endGame('You failed to type the word in time!');
+    }
+  }, timer * 5000);
+}
+
+function checkInput() {
+  if (wordInput.value === currentWord) {
+    score++;
+    timer = 4; // Reset the timer when the word is correct
+    generateWord();
+  }
+}
+
+function endGame(message) {
+  clearInterval(timerInterval);
+  clearInterval(typingInterval);
+  wordInput.disabled = true;
+  alert(`${message}\nYour final score: ${score}`);
+  
+  // Prompt for username after game ends
+  playerName = prompt("Please enter your name to record the score:");
+
+  if (playerName) {
+    updateScoreboard();
+  }
+  
+  gameOver = true;
+  restartBtn.classList.remove('hidden');
+}
+
+function updateScoreboard() {
+  scoreboard.push({ name: playerName, score: score });
+  scoreboard.sort((a, b) => b.score - a.score);
+  if (scoreboard.length > 5) {
+    scoreboard.pop();  // Limit to top 5 scores
+  }
+  scoreboardEl.innerHTML = '';
+  scoreboard.forEach((entry, index) => {
+    const li = document.createElement('li');
+    li.textContent = `${entry.name} - ${entry.score}`;
+    scoreboardEl.appendChild(li);
+  });
+}
+
+
+
+function restartGame() {
+  timer = 4;
+  startGame();
+}
+
+startBtn.addEventListener('click', startGame);
+wordInput.addEventListener('input', checkInput);
+restartBtn.addEventListener('click', restartGame);
+
+setInterval(randomAd, 10000);  // Check for random ad every 10 seconds
+
+function checkInput() {
+  if (wordInput.value === currentWord) {
+    score++;
+    timer = 4; // Reset the timer
+    showMessage("You got it!");
+    generateWord();
+  }
+}
+
+function showMessage(text) {
+  const msg = document.createElement("div");
+  msg.textContent = text;
+  msg.style.position = "fixed";
+  msg.style.top = "20px";
+  msg.style.left = "50%";
+  msg.style.transform = "translateX(-50%)";
+  msg.style.backgroundColor = "#4CAF50";
+  msg.style.color = "#fff";
+  msg.style.padding = "10px 20px";
+  msg.style.borderRadius = "10px";
+  msg.style.fontSize = "1.2rem";
+  msg.style.zIndex = "1000";
+  document.body.appendChild(msg);
+
+  setTimeout(() => {
+    msg.remove();
+  }, 1000);
+}
+
+
+</script>

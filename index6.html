@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Judge Game — You Decide the Sentence</title>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto&display=swap');
+
+    body {
+      background: #1c1c1c;
+      color: #f0e9d2;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      user-select: none;
+    }
+    h1 {
+      font-family: 'Merriweather', serif;
+      font-size: 3rem;
+      letter-spacing: 3px;
+      margin-bottom: 15px;
+      color: #d4af37; /* gold */
+      text-shadow: 1px 1px 3px #000;
+      user-select: none;
+    }
+    .case-box {
+      background: #2f2f2f;
+      border: 3px solid #d4af37;
+      border-radius: 15px;
+      width: 480px;
+      padding: 30px 40px;
+      box-shadow: 0 0 20px #d4af37aa;
+      white-space: pre-wrap;
+      font-size: 1.2rem;
+      line-height: 1.5;
+      margin-bottom: 25px;
+      font-family: 'Merriweather', serif;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #d4af37;
+      border: none;
+      padding: 14px 28px;
+      font-family: 'Merriweather', serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      color: #2f2f2f;
+      cursor: pointer;
+      box-shadow: 0 0 10px #d4af37bb;
+      transition: background 0.3s, box-shadow 0.3s;
+      user-select: none;
+    }
+    button:hover:not(:disabled) {
+      background: #c19e2b;
+      box-shadow: 0 0 15px #ffd700cc;
+    }
+    button:disabled {
+      background: #666;
+      color: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #sentenceInput {
+      width: 100px;
+      padding: 12px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: 2px solid #d4af37;
+      background: #1c1c1c;
+      color: #f0e9d2;
+      font-family: 'Roboto', sans-serif;
+      display: none;
+      text-align: center;
+      user-select: text;
+    }
+    .message {
+      font-size: 1.3rem;
+      min-height: 1.8em;
+      margin-bottom: 15px;
+      font-weight: 600;
+      font-family: 'Merriweather', serif;
+      color: #f0e9d2;
+      text-shadow: 0 0 5px #d4af37bb;
+    }
+    .score {
+      font-family: 'Merriweather', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #d4af37;
+      margin-bottom: 25px;
+      user-select: none;
+      text-shadow: 1px 1px 4px #000;
+    }
+    #restartBtn {
+      display: none;
+      background: #7b241c;
+      color: #f0e9d2;
+      box-shadow: 0 0 15px #a93226bb;
+      padding: 14px 32px;
+      font-family: 'Merriweather', serif;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s, box-shadow 0.3s;
+      user-select: none;
+    }
+    #restartBtn:hover {
+      background: #a93226;
+      box-shadow: 0 0 25px #e74c3ccc;
+    }
+
+    #backBtn {
+      background: #444;
+      color: #d4af37;
+      border: 2px solid #d4af37;
+      padding: 12px 24px;
+      font-family: 'Merriweather', serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: none;
+      user-select: none;
+      display: none;
+      margin-left: 10px;
+      transition: background 0.3s, color 0.3s;
+    }
+    #backBtn:hover {
+      background: #d4af37;
+      color: #2f2f2f;
+    }
+
+    #nameEntry {
+      margin-bottom: 15px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    #playerNameInput {
+      padding: 8px 12px;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      border: 2px solid #d4af37;
+      background: #1c1c1c;
+      color: #f0e9d2;
+      font-family: 'Roboto', sans-serif;
+      width: 240px;
+      text-align: center;
+    }
+    #submitNameBtn {
+      background: #d4af37;
+      border: none;
+      padding: 10px 20px;
+      font-family: 'Merriweather', serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      color: #2f2f2f;
+      cursor: pointer;
+      box-shadow: 0 0 10px #d4af37bb;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    #submitNameBtn:hover {
+      background: #c19e2b;
+      box-shadow: 0 0 15px #ffd700cc;
+    }
+
+    #leaderboard {
+      margin-top: 30px;
+      width: 480px;
+      background: #2f2f2f;
+      border: 3px solid #d4af37;
+      border-radius: 15px;
+      padding: 20px 30px;
+      font-family: 'Merriweather', serif;
+      color: #f0e9d2;
+      box-shadow: 0 0 20px #d4af37aa;
+    }
+    #leaderboard h2 {
+      margin-top: 0;
+      color: #d4af37;
+      text-shadow: 1px 1px 3px #000;
+      user-select: none;
+    }
+    #leaderboard ol {
+      padding-left: 1.4rem;
+    }
+    #leaderboard li {
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    /* Special styles for leaderboard places */
+    .first {
+      color: gold;
+      font-weight: 900;
+      text-shadow: 0 0 10px gold;
+    }
+    .second {
+      color: silver;
+      font-weight: 700;
+      text-shadow: 0 0 6px silver;
+    }
+    .third {
+      color: peru;
+      font-weight: 700;
+      text-shadow: 0 0 6px peru;
+    }
+    .money-100k::after {
+      content: " 💰100k";
+      font-weight: 700;
+      margin-left: 6px;
+    }
+    .money-75k::after {
+      content: " 💰75k";
+      font-weight: 700;
+      margin-left: 6px;
+    }
+    .money-25k::after {
+      content: " 💰25k";
+      font-weight: 700;
+      margin-left: 6px;
+    }
+    .money-21k::after {
+      content: " 💵21k";
+      font-weight: 700;
+      margin-left: 6px;
+    }
+    .trophy-gold::before {
+      content: "🏆";
+      margin-right: 6px;
+    }
+    .trophy-silver::before {
+      content: "🥈";
+      margin-right: 6px;
+    }
+    .trophy-bronze::before {
+      content: "🥉";
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Judge Game</h1>
+
+  <div class="case-box" id="caseBox">Loading case...</div>
+
+  <div class="controls">
+    <button id="jailBtn" title="Decide the defendant goes to jail">Jail</button>
+    <button id="noJailBtn" title="Decide the defendant does NOT go to jail">No Jail</button>
+    <button id="backBtn" title="Go back to choice" aria-label="Go back">Back</button>
+    <input type="number" id="sentenceInput" placeholder="Years" min="0" />
+    <button id="submitBtn" disabled>Submit</button>
+  </div>
+
+  <div class="message" id="message"></div>
+  <div class="score" id="score">Score: 0</div>
+
+  <div id="nameEntry">
+    <label for="playerNameInput" style="font-family:'Merriweather', serif; font-weight:700; color:#d4af37;">Enter your name to save score:</label>
+    <input type="text" id="playerNameInput" maxlength="16" placeholder="Your name (max 16 chars)" autocomplete="off" />
+    <button id="submitNameBtn">Submit Name</button>
+  </div>
+
+  <button id="restartBtn">Restart Game</button>
+  <button id="clearLeaderboardBtn" style="margin-top:8px; background:#444; color:#d4af37; border:2px solid #d4af37; padding:12px 28px; font-family:'Merriweather', serif; font-weight:700; font-size:1.1rem; border-radius:8px; cursor:pointer; box-shadow:none; user-select:none; display:none; transition: background 0.3s, color 0.3s;">Clear Leaderboard</button>
+
+  <div id="leaderboard" style="display:none;">
+    <h2>Leaderboard</h2>
+    <ol id="leaderboardList"></ol>
+  </div>
+
+  <script>
+    const cases = [
+      { name: "Jayden Anokye", story: "Stopped at a red light, but the witness claimed he ran it. No traffic camera footage available.", jailed: false },
+      { name: "Mary Johnson", story: "Allegedly altered financial documents, but the alterations were unsigned and possibly forged by someone else.", jailed: false },
+      { name: "Carlos Diaz", story: "Involved in a bar fight but claims self-defense after being provoked multiple times.", jailed: false },
+      { name: "Linda Lee", story: "Found carrying a small amount of a banned substance, but insists it was for a sick relative’s medical use.", jailed: false },
+      { name: "Tommy O'Connor", story: "Identified at a robbery scene, but was attending a family event miles away according to several witnesses.", jailed: false },
+      { name: "Emily Chen", story: "Transferred company funds to an unknown account but claims it was authorized by a superior who has since disappeared.", jailed: true },
+      { name: "David Brown", story: "Trespassed in a warehouse, claiming he was searching for a lost pet, but security footage shows him tampering with locks.", jailed: true },
+      { name: "Samantha Green", story: "Hacked into a private email, but says she was hired as a cybersecurity consultant to test vulnerabilities.", jailed: false },
+      { name: "Michael White", story: "Submitted loan documents with questionable income proof, but the documents are authentic though outdated.", jailed: false },
+      { name: "Jessica Black", story: "Caught speeding but insists she was rushing to the hospital in a life-threatening emergency.", jailed: false },
+      { name: "Aaron Phillips", story: "Caught on camera vandalizing a store window, but claims he was trying to stop a theft and acted in panic.", jailed: true },
+      { name: "Natalie Brooks", story: "Charged with possession of stolen goods, but claims she unknowingly bought them from a legitimate reseller.", jailed: false },
+      { name: "Samuel King", story: "Accused of assault during a protest; multiple conflicting eyewitness accounts exist.", jailed: false },
+      { name: "Olivia Martin", story: "Charged with identity fraud, but alleges she was a victim of identity theft herself.", jailed: false },
+      { name: "Ethan Lewis", story: "Caught breaking into a car, claiming it was an emergency to save a child locked inside.", jailed: false },
+      { name: "Mia Turner", story: "Accused of arson at an abandoned building, but evidence suggests electrical faults as cause of fire.", jailed: false },
+      { name: "Jack Harris", story: "Found with illegal weapons, but insists they were inherited and stored for collection purposes without intent to use.", jailed: false },
+      { name: "Sophia Wright", story: "Embezzled funds from charity but claims the money was used to cover emergency expenses approved informally.", jailed: true },
+      { name: "Liam Scott", story: "Allegedly involved in insider trading, but the information was publicly available before the trades.", jailed: false },
+      { name: "Brian Stone", story: "Accused of stealing a bike, but claims he was returning it to a friend who left it behind.", jailed: false },
+      { name: "Linda Park", story: "Attempted to board a plane with another person’s passport; she says it was an honest mix-up during a group trip.", jailed: false },
+      { name: "Carlos Rivera", story: "Broke a shop window during a protest; claims it was self-defense after being shoved into it.", jailed: false },
+      { name: "Tina Delgado", story: "Sold concert tickets online, but multiple people reported fakes. She says she bought them second-hand herself.", jailed: false },
+      { name: "Mark Bennett", story: "Was found in a house during a burglary but says he was invited by the owner who can’t be reached.", jailed: true },
+      { name: "Rachel Adams", story: "Withheld evidence in a court case, claiming she feared retaliation from the suspect.", jailed: true },
+      { name: "Jason Kim", story: "Fired a gun in a public park, stating it was to scare off a wild animal threatening children.", jailed: false },
+      { name: "Amber Collins", story: "Discovered editing medical records. She says it was to correct errors, not falsify data.", jailed: true },
+      { name: "Tyler Nguyen", story: "Arrested for graffiti, but the wall was on his family’s property and was part of a mural project.", jailed: false },
+      { name: "Chloe Freeman", story: "Allegedly lied under oath. She claims it was a memory lapse, not intentional perjury.", jailed: false },
+      { name: "Grace Hill", story: "Charged with hit-and-run, but another vehicle’s dashcam shows a different car speeding at the scene.", jailed: false },
+      {name: "Avery Knox",story: "Received large wire transfers from anonymous accounts during a federal investigation. Claims they were donations for a YouTube channel, but no content was ever posted and the money vanished.",jailed: true},
+{ name: "Logan Brooks", story: "Accused of robbing a store with a mask, but claims he was filming a prank video at the same time.", jailed: true },
+{ name: "Jade Collins", story: "Found in a stolen car, says she borrowed it from a friend but doesn’t remember their last name.", jailed: true },
+{ name: "Henry West", story: "Spray-painted a wall downtown, claims it was a public art project he signed up for online.", jailed: false },
+{ name: "Nora Simmons", story: "Used a fake coupon to get free food. Says she found it on a popular deal-sharing website.", jailed: true },
+{ name: "Aiden Murphy", story: "Got caught filming inside a locker room. Claims he was making a documentary about school safety.", jailed: true },
+{ name: "Lily Hart", story: "Broke into a garage, claims she thought it was abandoned and wanted shelter during a storm.", jailed: false },
+{ name: "Mason Scott", story: "Shouted threats during a school assembly. Claims it was a misunderstood performance act.", jailed: true },
+{ name: "Stella Rivera", story: "Ordered 15 pizzas to a stranger’s house as a prank. Claims it was part of a social media challenge.", jailed: true },
+{ name: "Wyatt Dean", story: "Entered restricted airport area. Says he was sleepwalking and woke up confused.", jailed: false },
+{ name: "Brooklyn James", story: "Accused of poisoning a pet cat. Claims it was a mix-up with cleaning products left out.", jailed: true },
+{ name: "Colton Hayes", story: "Used someone else's gym membership. Says he was just using a shared family plan.", jailed: false },
+{ name: "Aria Winters", story: "Pretended to be a doctor online. Says it was a role-playing forum, not real advice.", jailed: true },
+{ name: "Grayson Miller", story: "Jumped a subway turnstile. Says he didn’t have change and it was an emergency.", jailed: false },
+{ name: "Eva Brooks", story: "Claimed she found a lost wallet and planned to return it, but it was missing all the cash.", jailed: true },
+{ name: "Miles Foster", story: "Snuck into a zoo exhibit. Says he wanted a closer look at the animals for a school paper.", jailed: false },
+{ name: "Savannah Quinn", story: "Pulled a fire alarm at school. Says it was stuck and she was trying to fix it.", jailed: true },
+{ name: "Jaxon Lee", story: "Falsified a resume to get a government job. Says he was pressured to meet family expectations.", jailed: true },
+{ name: "Paisley Woods", story: "Caught shoplifting makeup. Says it was a dare and she didn’t actually want it.", jailed: true },
+{ name: "Everett Blake", story: "Was filming strangers in a park without consent. Claims he was creating an art project.", jailed: false },
+{ name: "Sophie Grant", story: "Was arrested for driving without a license. Claims she thought it had already been renewed.", jailed: false },
+{ name: "Theo Knight", story: "Used a drone to peek into private properties. Says he was testing it for a tech review.", jailed: true },
+{ name: "Piper Lane", story: "Broke a store window during a blackout. Says it was already cracked and she leaned on it.", jailed: false },
+{ name: "Ezekiel Cross", story: "Got caught with someone else's ID. Says it was just a joke between friends.", jailed: true },
+{ name: "Autumn Nash", story: "Downloaded pirated software onto a school computer. Says she didn’t know it was illegal.", jailed: true },
+{ name: "Roman Vaughn", story: "Accused of hiding stolen jewelry in his locker. Says someone planted it there.", jailed: false },
+{ name: "Isabella Knight", story: "Accessed a secure school database to change a friend's grade. Says it was to help them avoid suspension.", jailed: true },
+{ name: "Owen Walker", story: "Left a threatening voicemail during a political debate. Says it was meant as satire.", jailed: true },
+{ name: "Daisy Monroe", story: "Kept a wallet found in a parking lot for over a month. Claims she forgot to turn it in.", jailed: false },
+{ name: "Zane Crawford", story: "Ran an online scam selling fake concert tickets. Says it was a joke that spiraled out of control.", jailed: true },
+{ name: "Isla Dawson", story: "Gave prescription pills to a friend for stress. Claims she didn’t know it was illegal.", jailed: true },
+{ name: "Nathan Pierce", story: "Sprayed fire extinguisher in school hallway. Says he thought there was smoke.", jailed: false },
+{ name: "Clara Bishop", story: "Took someone’s lunch daily at work. Claims she thought it was abandoned food.", jailed: false },
+{ name: "Julian Cross", story: "Was caught installing a hidden camera in a coffee shop bathroom. Claims it was for a prank channel.", jailed: true },
+{ name: "Luna Hayes", story: "Forged a parking permit to get into campus lots. Says real ones were too expensive.", jailed: true },
+{ name: "Jasper Reed", story: "Flooded a dorm bathroom by accident. Denies it was intentional sabotage.", jailed: false },
+{ name: "Freya Mason", story: "Illegally downloaded 600+ movies and resold them. Claims she needed money for rent.", jailed: true },
+{ name: "Caleb Rowe", story: "Used a laser pointer at a pilot during takeoff. Claims he didn’t know it was a crime.", jailed: true },
+{ name: "Zara Bell", story: "Yelled fake emergency alert at a mall. Claims it was a dare from friends.", jailed: true },
+{ name: "Elliot Wells", story: "Was paid to write college essays for others. Says he was offering a 'tutoring service'.", jailed: true },
+{ name: "Leila Shaw", story: "Burned homework and set off smoke alarm. Claims it was a stress relief ritual.", jailed: false },
+{ name: "Finnley Grant", story: "Used deepfake videos to impersonate a teacher online. Claims it was for a meme account.", jailed: true },
+{ name: "Anya Collins", story: "Rode public transport for weeks without paying. Says the scanner never worked.", jailed: false },
+{ name: "Ethan Walsh", story: "Posted fake bomb threats as a prank. Claims he thought no one would take it seriously.", jailed: true },
+{ name: "Bianca Flores", story: "Let a banned student into campus through a side door. Says they were just getting their stuff.", jailed: false },
+{ name: "Theo Ramsey", story: "Was found using someone else's fingerprint to access secure lab equipment. Claims it was with permission.", jailed: true },
+{ name: "Sophie Carter", story: "Caught using fake IDs to enter clubs multiple times. Says it was to prove a point about security flaws.", jailed: true },
+{ name: "Maxwell Turner", story: "Accused of vandalizing a public monument at night. Claims he was cleaning graffiti, not adding more.", jailed: false },
+{ name: "Lila Bennett", story: "Smuggled exotic pets without permits. Says she was rescuing them from illegal trade.", jailed: true },
+{ name: "Evan Fisher", story: "Attempted to hack into a charity website to expose flaws. Claims he wanted to help.", jailed: false },
+{ name: "Gabriella Moore", story: "Got caught dumping toxic waste into a river. Says it was accidental and due to faulty machinery.", jailed: true },
+{ name: "Oscar Reed", story: "Ran a black-market art sale online. Claims he thought the paintings were replicas.", jailed: true },
+{ name: "Clara Dawson", story: "Used forged documents to claim insurance money. Says she was misled by an agent.", jailed: true },
+{ name: "Leo Wallace", story: "Was involved in a multi-car accident but fled the scene. Claims he panicked due to medical emergency.", jailed: true },
+{ name: "Nina Lopez", story: "Hacked into a school’s grading system to fix her own grades. Claims she was stressed and desperate.", jailed: true },
+{ name: "Ethan Brooks", story: "Spread false rumors about a business online causing damage. Says it was a prank gone wrong.", jailed: true },
+{ name: "Ava Sullivan", story: "Caught trespassing on private property for photography. Claims she had permission from a neighbor.", jailed: false },
+{ name: "Jackson Price", story: "Sold counterfeit luxury goods at local markets. Says he didn’t know they were fake.", jailed: true },
+{ name: "Maya Clarke", story: "Disrupted a fire alarm system during a drill. Claims it was an accident.", jailed: false },
+{ name: "Calvin Young", story: "Received stolen property but claims he bought it from a friend unaware of its origin.", jailed: true },
+{ name: "Isabel Hill", story: "Was found selling prescription drugs online. Says it was to help friends afford medication.", jailed: true },
+{ name: "Julian Ford", story: "Attempted to bribe an official for a parking violation. Claims he was joking.", jailed: true },
+{ name: "Sienna Grant", story: "Caught hacking social media accounts. Says it was to test security.", jailed: true },
+{ name: "Miles Cooper", story: "Illegally cut down protected trees on his property. Claims he thought they were dead.", jailed: true },
+{ name: "Ella Parker", story: "Faked an injury to claim disability benefits. Claims she needed the money for urgent expenses.", jailed: true },
+{ name: "Nathan Stone", story: "Stole bicycles from campus racks. Says he was borrowing them for a friend.", jailed: true },
+{ name: "Chloe Morgan", story: "Switched price tags in a store. Claims it was a dare from friends.", jailed: true },
+{ name: "Logan Edwards", story: "Graffiti’d a subway train but says it was part of an authorized art project.", jailed: false },
+{ name: "Amelia Fox", story: "Created fake donation websites. Claims it was satire on charity scams.", jailed: true },
+{ name: "Owen Bell", story: "Sent threatening texts but claims it was misunderstood sarcasm.", jailed: true },
+{ name: "Luna Scott", story: "Sabotaged a competitor’s sports equipment. Says it was in the heat of competition.", jailed: true },
+{ name: "Jasper Long", story: "Possessed illegal fireworks without permit. Claims it was for a family celebration.", jailed: true },
+{ name: "Isla Harper", story: "Was caught shoplifting clothes for a fashion show. Says it was a statement against consumerism.", jailed: true },
+{ name: "Eli Hughes", story: "Distributed fake tickets for a charity concert. Claims he didn’t intend harm.", jailed: true },
+{ name: "Mila Wright", story: "Impersonated a doctor to prescribe medication. Claims she was trying to help a sick relative.", jailed: true },
+{ name: "Henry Collins", story: "Shot a BB gun at a neighbor’s window. Says it was accidental.", jailed: false },
+{ name: "Zoe Reed", story: "Broke into a school to retrieve lost items. Says she was unaware it was illegal.", jailed: false },
+{ name: "Caleb Foster", story: "Tampered with evidence in a minor case. Says it was to protect a friend.", jailed: true },
+{ name: "Natalie Brooks", story: "Used stolen credit cards online. Claims she was coerced by others.", jailed: true },
+{ name: "Ethan King", story: "Stole food from a supermarket. Says he was homeless and hungry.", jailed: false },
+{ name: "Aria Mitchell", story: "Broke a car window to save a trapped animal. Claims it was an emergency.", jailed: false },
+{ name: "Jacob Reed", story: "Was caught driving without a valid license. Claims he forgot to renew.", jailed: true },
+{ name: "Sofia Gray", story: "Caught falsifying school records. Says it was to fix a clerical error.", jailed: true },
+{ name: "Leo Knight", story: "Took part in an illegal street race. Claims it was peer pressure.", jailed: true },
+{ name: "Grace Bennett", story: "Posted hacked confidential emails online. Claims it was whistleblowing.", jailed: true },
+{ name: "Evan Price", story: "Smuggled cigarettes across state lines. Claims he was unaware of the law.", jailed: true },
+{ name: "Zara Morgan", story: "Falsified her work hours to get paid extra. Claims it was a mistake in logging.", jailed: true },
+{ name: "Ryder Coleman", story: "Caught trespassing in an abandoned factory. Says he was exploring for urban photography.", jailed: false },
+{ name: "Ivy Turner", story: "Illegally streamed pay-per-view events online. Claims it was to share with friends.", jailed: true },
+{ name: "Axel Davis", story: "Destroyed public property during a protest. Says it was self-defense against aggression.", jailed: true },
+{ name: "Luna Price", story: "Sold prescription medication without license. Says it was to help a friend in need.", jailed: true },
+{ name: "Elias James", story: "Forged signatures on school permission slips. Claims it was to avoid missing a field trip.", jailed: true },
+{ name: "Clara Bryant", story: "Used a fake address to attend a better school district. Says it was for her children’s education.", jailed: true },
+{ name: "Mason Powell", story: "Vandalized a rival school’s mascot statue. Claims it was a prank.", jailed: true },
+{ name: "Sophia Gray", story: "Caught shoplifting school supplies. Says she couldn’t afford them.", jailed: false },
+{ name: "Hudson Clark", story: "Illegally parked in a disabled spot repeatedly. Claims he forgot the permit at home.", jailed: false },
+{ name: "Aria Brooks", story: "Sent fake emergency calls to police. Says it was a prank that went too far.", jailed: true },
+{ name: "Noah Hunt", story: "Used someone else’s student ID to access campus facilities. Says he was helping a friend.", jailed: true },
+{ name: "Mila Simmons", story: "Tampered with the scoreboard during a sports event. Claims it was a joke.", jailed: false },
+{ name: "Jaxon Cole", story: "Distributed counterfeit money at a festival. Says he didn’t know it was illegal.", jailed: true },
+{ name: "Lily James", story: "Posted hateful messages online about a teacher. Claims it was freedom of speech.", jailed: false },
+{ name: "Evan Grant", story: "Stole gas from a station multiple times. Says he was struggling financially.", jailed: true },
+{ name: "Ella Foster", story: "Caught cheating on a major exam. Says she was under pressure.", jailed: true },
+{ name: "Leo Russell", story: "Drove a car without insurance and crashed. Claims it was an emergency.", jailed: true },
+{ name: "Zoe Kelly", story: "Hacked a competitor’s website to steal clients. Says it was a business strategy.", jailed: true },
+{ name: "Caleb Moore", story: "Burned trash illegally in a residential area. Claims it was due to lack of disposal options.", jailed: false },
+{ name: "Isabella Diaz", story: "Caught impersonating a police officer. Claims it was for a film project.", jailed: true },
+{ name: "Jackson Lee", story: "Sold fake event tickets online. Claims it was an accident due to misinformation.", jailed: true },
+{ name: "Sophie Martinez", story: "Used fake medical notes to get excused from school. Says she was very sick.", jailed: false },
+{ name: "Max Walker", story: "Illegally hunted protected wildlife. Claims it was to feed his family.", jailed: true },
+{ name: "Luna Parker", story: "Spread false rumors causing a business loss. Says it was a misunderstanding.", jailed: true },
+{ name: "Jasper Bell", story: "Was found trespassing in a government building. Claims he lost his way.", jailed: true },
+{ name: "Maya Brooks", story: "Skipped court hearings multiple times. Says she was overwhelmed.", jailed: true },
+{ name: "Ethan Young", story: "Hacked into school records to change grades. Claims it was a test for vulnerabilities.", jailed: true },
+{ name: "Aria Carter", story: "Shoplifted groceries. Says she was feeding hungry children.", jailed: false },
+{ name: "Jacob Reed", story: "Hit and run after an accident. Claims he was scared.", jailed: true },
+{ name: "Sofia Gray", story: "Created fake social media profiles to harass others. Claims it was a joke.", jailed: true },
+{ name: "Leo Knight", story: "Engaged in illegal street racing. Says he was pressured by friends.", jailed: true },
+{ name: "Grace Bennett", story: "Leaked confidential company data. Says it was whistleblowing.", jailed: true },
+{ name: "Evan Price", story: "Smuggled cigarettes to avoid taxes. Claims ignorance of the law.", jailed: true },
+{ name: "Nina Flores", story: "Forged prescriptions to obtain drugs. Claims she was self-medicating.", jailed: true },
+{ name: "Oliver Harris", story: "Stole a package from a porch. Says it was an accident.", jailed: true },
+{ name: "Madison Collins", story: "Posted private photos online without consent. Says it was a mistake.", jailed: true },
+{ name: "Aiden Cooper", story: "Broke into a car but left valuables untouched. Claims he was just curious.", jailed: true },
+{ name: "Ella Morris", story: "Falsified insurance claims. Says she was desperate.", jailed: true },
+{ name: "Mason Rivera", story: "Distributed pirated software. Says it was for educational use.", jailed: true },
+{ name: "Samantha Brooks", story: "Vandalized a community center. Claims it was a protest.", jailed: true },
+{ name: "Jackson Hayes", story: "Carried illegal knives. Claims they were for self-defense.", jailed: true },
+{ name: "Isabella Morgan", story: "Skipped jury duty multiple times. Claims forgetfulness.", jailed: false },
+{ name: "Caleb Stewart", story: "Hacked email accounts to expose cheating. Claims whistleblowing.", jailed: true },
+{ name: "Chloe Howard", story: "Embezzled funds from a charity. Says it was for personal emergencies.", jailed: true },
+{ name: "Logan Carter", story: "Falsified documents for a loan. Says it was pressured by family.", jailed: true },
+{ name: "Mia Simmons", story: "Sprayed graffiti on public buses. Claims it was street art.", jailed: true },
+{ name: "Henry Price", story: "Stole a delivery package by mistake. Says he thought it was his.", jailed: false },
+{ name: "Aria Bell", story: "Impersonated a doctor online. Says it was a role-play.", jailed: true },
+{ name: "Zane Parker", story: "Sold counterfeit sneakers. Claims ignorance.", jailed: true },
+{ name: "Leah Murphy", story: "Posted fake news articles causing panic. Claims satire.", jailed: true },
+{ name: "Ethan Cooper", story: "Drank underage at a party. Says peer pressure.", jailed: false },
+{ name: "Sienna Brooks", story: "Used fake credentials to get a job. Claims she needed the income.", jailed: true },
+{ name: "Lucas Wright", story: "Illegally parked in a fire lane. Says he was in an emergency.", jailed: false },
+{ name: "Maya Ross", story: "Set off a false fire alarm. Claims it was an accident.", jailed: false },
+{ name: "Owen Price", story: "Hacked a video game account. Says it was for fun.", jailed: true },
+{ name: "Natalie Diaz", story: "Sold stolen jewelry. Claims she didn’t know it was stolen.", jailed: true },
+{ name: "Avery Brooks", story: "Illegally parked in a handicap spot despite not having a permit. Claims it was an emergency.", jailed: false },
+{ name: "Logan Wells", story: "Caught selling fake concert tickets. Says he was unaware they were counterfeit.", jailed: true },
+{ name: "Samantha Hayes", story: "Used a stolen credit card to make online purchases. Claims she found the card and wanted to help.", jailed: true },
+{ name: "Mason Turner", story: "Tagged public walls with graffiti art. Says it was a form of social expression.", jailed: true },
+{ name: "Ella Foster", story: "Skipped school repeatedly without valid reasons. Claims mental health issues.", jailed: false },
+{ name: "Jacob Rivera", story: "Illegally crossed state borders with undeclared goods. Claims ignorance of the law.", jailed: true },
+{ name: "Zoe Collins", story: "Hacked into a competitor’s database to steal trade secrets. Says it was to protect her company.", jailed: true },
+{ name: "Ethan Morgan", story: "Committed petty theft from a local store. Claims he was desperate to feed his family.", jailed: true },
+{ name: "Lily Scott", story: "Falsified medical records to obtain prescription drugs. Claims she needed medication for pain.", jailed: true },
+{ name: "David Bennett", story: "Caught driving without a valid license. Says he lost his license in a previous incident.", jailed: true },
+{ name: "Chloe Ramirez", story: "Impersonated a school official to gain access to restricted areas. Says it was a dare.", jailed: true },
+{ name: "Lucas Price", story: "Was involved in a hit-and-run accident. Claims fear prevented him from stopping.", jailed: true },
+{ name: "Maya Long", story: "Used fake identification to enter age-restricted venues. Says it was peer pressure.", jailed: false },
+{ name: "Aiden Cooper", story: "Stole electronics from a warehouse. Claims it was to replace items stolen from him.", jailed: true },
+{ name: "Sophia Bennett", story: "Manipulated exam scores online. Claims she was testing the system.", jailed: true },
+{ name: "Nathan Green", story: "Illegally downloaded movies and software. Says it was to save money.", jailed: false },
+{ name: "Grace Hall", story: "Posted threatening messages on social media. Says it was a joke taken out of context.", jailed: true },
+{ name: "Owen Ramirez", story: "Carried unlicensed firearms. Claims they were inherited.", jailed: true },
+{ name: "Isabella Lee", story: "Sold counterfeit designer goods. Claims it was a business opportunity.", jailed: true },
+{ name: "Caleb Edwards", story: "Set off false alarms at a public building. Claims it was a prank.", jailed: false },
+{ name: "Madison Collins", story: "Forged documents to gain employment. Says she was under financial stress.", jailed: true },
+{ name: "Zachary Diaz", story: "Stole food from a supermarket. Claims hunger drove his actions.", jailed: false },
+{ name: "Avery Murphy", story: "Hacked into social media accounts. Says it was to expose vulnerabilities.", jailed: true },
+{ name: "Evelyn Baker", story: "Committed arson on an abandoned building. Claims it was an accident caused by negligence.", jailed: true },
+{ name: "Jackson Ross", story: "Engaged in illegal gambling. Claims it was recreational.", jailed: true },
+{ name: "Luna Price", story: "Sold unlicensed pharmaceuticals. Claims she wanted to help people who couldn’t afford medicine.", jailed: true },
+{ name: "Ryan Moore", story: "Vandalized a public monument. Claims political protest.", jailed: true },
+{ name: "Ella Simmons", story: "Cheated on official documents to claim benefits. Says she was misinformed.", jailed: true },
+{ name: "Ethan Hill", story: "Illegally streamed copyrighted content. Claims it was for educational purposes.", jailed: false },
+{ name: "Mia Brooks", story: "Hit and run with minor injuries. Says panic caused flight.", jailed: true },
+{ name: "Logan Carter", story: "Used fake credentials to rent property. Says it was a mistake.", jailed: true },
+{ name: "Isabella Reed", story: "Tampered with public transportation equipment. Claims safety concerns.", jailed: true },
+{ name: "Caleb Howard", story: "Illegally hunted protected species. Says it was traditional hunting.", jailed: true },
+{ name: "Sophia Kelly", story: "Falsified insurance claims. Says desperation led to her actions.", jailed: true },
+{ name: "Liam Edwards", story: "Trespassed in a private property. Claims it was for a dare.", jailed: false },
+{ name: "Olivia Nelson", story: "Posted private information online without consent. Claims it was unintentional.", jailed: true },
+{ name: "James Baker", story: "Stole fuel from gas stations multiple times. Says financial hardship.", jailed: true },
+{ name: "Maya Brooks", story: "Engaged in identity theft. Claims she was coerced.", jailed: true },
+{ name: "Aiden Diaz", story: "Illegally parked in emergency zones. Claims emergency caused parking.", jailed: false },
+{ name: "Grace Edwards", story: "Hacked into government databases. Says it was ethical hacking.", jailed: true },
+{ name: "Jacob Price", story: "Distributed pirated software. Claims it was to help students.", jailed: true },
+{ name: "Lily Ross", story: "Shoplifted essentials from a store. Says financial distress.", jailed: false },
+{ name: "Mason Reed", story: "Committed vandalism during a protest. Says it was expression of rights.", jailed: true },
+{ name: "Ella Campbell", story: "Faked medical emergencies to avoid legal troubles. Says panic caused lies.", jailed: true },
+{ name: "Jackson Hill", story: "Used counterfeit currency. Claims ignorance.", jailed: true },
+{ name: "Zoe Scott", story: "Impersonated law enforcement. Claims it was for entertainment.", jailed: true },
+{ name: "Ethan Ramirez", story: "Engaged in illegal street racing. Claims peer pressure.", jailed: true },
+{ name: "Sophia Murphy", story: "Forged academic transcripts. Says it was to improve chances.", jailed: true },
+{ name: "Oliver Bennett", story: "Carried illegal weapons in public. Claims self-defense.", jailed: true },
+{ name: "Madison Lee", story: "Illegally downloaded music files. Claims it was for personal use.", jailed: false },
+{ name: "Caleb Collins", story: "Vandalized public transport vehicles. Claims political motives.", jailed: true },
+{ name: "Luna Johnson", story: "Sold counterfeit electronics. Claims unawareness of fake products.", jailed: true },
+{ name: "Avery Clark", story: "Repeatedly failed to pay fines. Says financial issues.", jailed: false },
+{ name: "Logan Scott", story: "Destroyed property during a fit of rage. Claims emotional distress.", jailed: true },
+{ name: "Ella Turner", story: "Illegally hacked into a school network. Says it was to highlight security flaws.", jailed: true },
+{ name: "Jackson Moore", story: "Used fake IDs to enter bars. Claims peer pressure.", jailed: false },
+{ name: "Isabella King", story: "Operated an illegal business from home. Claims necessity due to unemployment.", jailed: true },
+{ name: "Mason Martinez", story: "Shoplifted luxury items. Claims addiction problems.", jailed: true },
+{ name: "Sofia Perez", story: "Falsified documents for a loan. Says desperation.", jailed: true },
+
+    ];
+
+    let currentCase = null;
+    let score = 0;
+    let chosenJail = null;
+
+    const caseBox = document.getElementById("caseBox");
+    const jailBtn = document.getElementById("jailBtn");
+    const noJailBtn = document.getElementById("noJailBtn");
+    const backBtn = document.getElementById("backBtn");
+    const sentenceInput = document.getElementById("sentenceInput");
+    const submitBtn = document.getElementById("submitBtn");
+    const message = document.getElementById("message");
+    const scoreDisplay = document.getElementById("score");
+    const restartBtn = document.getElementById("restartBtn");
+    const clearLeaderboardBtn = document.getElementById("clearLeaderboardBtn");
+
+    const nameEntry = document.getElementById("nameEntry");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const submitNameBtn = document.getElementById("submitNameBtn");
+
+    const leaderboard = document.getElementById("leaderboard");
+    const leaderboardList = document.getElementById("leaderboardList");
+
+    function newCase() {
+      message.textContent = "";
+      sentenceInput.value = "";
+      sentenceInput.style.display = "none";
+      submitBtn.disabled = true;
+      backBtn.style.display = "none";
+
+      jailBtn.disabled = false;
+      noJailBtn.disabled = false;
+
+      chosenJail = null;
+
+      currentCase = cases[Math.floor(Math.random() * cases.length)];
+      caseBox.textContent = `Defendant: ${currentCase.name}\n\nCase: ${currentCase.story}`;
+
+      // Hide leaderboard and name entry if showing
+      leaderboard.style.display = "none";
+      nameEntry.style.display = "none";
+      clearLeaderboardBtn.style.display = "none";
+
+      caseBox.style.opacity = "1";
+      document.querySelector(".controls").style.opacity = "1";
+    }
+
+    function gameOver(reason) {
+      message.textContent = `Wrong! ${reason} Game Over. Final score: ${score}`;
+      jailBtn.disabled = true;
+      noJailBtn.disabled = true;
+      sentenceInput.style.display = "none";
+      submitBtn.disabled = true;
+      restartBtn.style.display = "inline-block";
+
+      // Show name entry to save score
+      nameEntry.style.display = "flex";
+      playerNameInput.focus();
+
+      // Dim game area to highlight leaderboard after save
+      caseBox.style.opacity = "0.5";
+      document.querySelector(".controls").style.opacity = "0.5";
+
+      backBtn.style.display = "none";
+    }
+
+    jailBtn.addEventListener("click", () => {
+      chosenJail = true;
+      jailBtn.disabled = true;
+      noJailBtn.disabled = true;
+      sentenceInput.style.display = "inline-block";
+      submitBtn.disabled = false;
+      sentenceInput.focus();
+      message.textContent = "";
+      backBtn.style.display = "inline-block";
+    });
+
+    noJailBtn.addEventListener("click", () => {
+      chosenJail = false;
+      jailBtn.disabled = true;
+      noJailBtn.disabled = true;
+      sentenceInput.style.display = "none";
+      submitBtn.disabled = false;
+      message.textContent = "";
+      backBtn.style.display = "inline-block";
+    });
+
+    backBtn.addEventListener("click", () => {
+      // Undo choice, reset UI
+      chosenJail = null;
+      sentenceInput.style.display = "none";
+      sentenceInput.value = "";
+      submitBtn.disabled = true;
+      jailBtn.disabled = false;
+      noJailBtn.disabled = false;
+      message.textContent = "";
+      backBtn.style.display = "none";
+    });
+
+    submitBtn.addEventListener("click", () => {
+      if (chosenJail === null) {
+        message.textContent = "Please select Jail or No Jail.";
+        return;
+      }
+
+      if (chosenJail) {
+        const years = parseInt(sentenceInput.value, 10);
+        if (isNaN(years) || years < 0) {
+          message.textContent = "Please enter a valid number of years.";
+          return;
+        }
+        if (!currentCase.jailed) {
+          gameOver("They should NOT go to jail.");
+          return;
+        }
+        // Player is right about jail, sentence length doesn't matter
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        message.textContent = `Correct! ${currentCase.name} is sentenced to ${years} year${years !== 1 ? 's' : ''}. Next case...`;
+        chosenJail = null;
+        backBtn.style.display = "none";
+        setTimeout(newCase, 1800);
+      } else {
+        // Player chose No Jail
+        if (!currentCase.jailed) {
+          score++;
+          scoreDisplay.textContent = `Score: ${score}`;
+          message.textContent = `Correct! ${currentCase.name} is released. Next case...`;
+          chosenJail = null;
+          backBtn.style.display = "none";
+          setTimeout(newCase, 1800);
+        } else {
+          gameOver("They SHOULD go to jail.");
+        }
+      }
+    });
+
+    restartBtn.addEventListener("click", () => {
+      score = 0;
+      scoreDisplay.textContent = `Score: ${score}`;
+      message.textContent = "";
+      restartBtn.style.display = "none";
+      nameEntry.style.display = "none";
+      caseBox.style.opacity = "1";
+      document.querySelector(".controls").style.opacity = "1";
+      playerNameInput.value = "";
+      leaderboard.style.display = "none";
+      clearLeaderboardBtn.style.display = "none";
+      jailBtn.disabled = false;
+      noJailBtn.disabled = false;
+      sentenceInput.style.display = "none";
+      submitBtn.disabled = true;
+      backBtn.style.display = "none";
+      chosenJail = null;
+      newCase();
+    });
+
+    submitNameBtn.addEventListener("click", () => {
+      const playerName = playerNameInput.value.trim();
+      if (!playerName) {
+        alert("Please enter your name.");
+        return;
+      }
+      saveScore(playerName, score);
+      nameEntry.style.display = "none";
+      restartBtn.style.display = "inline-block";
+      displayLeaderboard();
+      playerNameInput.value = "";
+      clearLeaderboardBtn.style.display = "inline-block";
+      // Dim game area to highlight leaderboard
+      caseBox.style.opacity = "0.5";
+      document.querySelector(".controls").style.opacity = "0.5";
+    });
+
+    clearLeaderboardBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear the leaderboard? This cannot be undone.")) {
+        localStorage.removeItem("judgeLeaderboard");
+        leaderboardList.innerHTML = "";
+        leaderboard.style.display = "none";
+        clearLeaderboardBtn.style.display = "none";
+        caseBox.style.opacity = "1";
+        document.querySelector(".controls").style.opacity = "1";
+        message.textContent = "Leaderboard cleared.";
+      }
+    });
+
+    function saveScore(name, score) {
+      const leaderboardData = JSON.parse(localStorage.getItem("judgeLeaderboard")) || [];
+      leaderboardData.push({ name, score });
+      leaderboardData.sort((a, b) => b.score - a.score);
+      localStorage.setItem("judgeLeaderboard", JSON.stringify(leaderboardData.slice(0, 20))); // keep top 20 only
+    }
+
+    function displayLeaderboard() {
+      const data = JSON.parse(localStorage.getItem("judgeLeaderboard")) || [];
+      leaderboardList.innerHTML = "";
+      if (data.length === 0) {
+        leaderboardList.innerHTML = "<li>No scores yet.</li>";
+      } else {
+        data.forEach((entry, index) => {
+          const li = document.createElement("li");
+
+          // Assign classes for styles
+          if (index === 0) li.classList.add("first", "trophy-gold", "money-100k");
+          else if (index === 1) li.classList.add("second", "trophy-silver", "money-75k");
+          else if (index === 2) li.classList.add("third", "trophy-bronze", "money-25k");
+          else if (index < 9) li.classList.add("money-21k");
+
+          li.textContent = `${index + 1}. ${entry.name} - ${entry.score} pts`;
+          leaderboardList.appendChild(li);
+        });
+      }
+      leaderboard.style.display = "block";
+    }
+
+    // Start first case on page load
+    newCase();
+    // ... (existing code above unchanged)
+
+sentenceInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !submitBtn.disabled) {
+    submitBtn.click();
+  }
+});
+
+playerNameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    submitNameBtn.click();
+  }
+});
+
+// ... (rest of the code unchanged)
+
+
+  </script>
+</body>
+</html>

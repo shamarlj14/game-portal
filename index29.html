@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+<title>Math solver</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0ff, #f0f);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  animation: bgPulse 5s infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
+
+.screen {
+  background: rgba(0,0,0,0.8);
+  padding: 30px 50px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 0 20px #0ff;
+  width: 90%;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+h1 { font-size: 2.5rem; margin-bottom: 15px; text-shadow: 0 0 10px #0ff, 0 0 20px #f0f; }
+
+input { padding: 10px; font-size: 1.2rem; border-radius: 10px; border: none; width: 80%; text-align: center; margin-bottom: 15px; outline: none; }
+
+button { padding: 10px 20px; font-size: 1.2rem; border: none; border-radius: 10px; cursor: pointer; background: #0ff; color: #000; box-shadow: 0 0 10px #0ff; transition: transform 0.2s; }
+button:hover { transform: scale(1.1); }
+
+.problem { font-size: 2rem; margin-bottom: 10px; transition: transform 0.2s; }
+.problem.correct { color: #0f0; transform: scale(1.2); text-shadow: 0 0 10px #0f0; }
+.problem.wrong { color: #f00; transform: scale(1.2); text-shadow: 0 0 10px #f00; }
+
+.timer, .scoreboard, .problem-timer { font-size: 1.2rem; margin: 5px 0; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { padding: 8px 12px; border-bottom: 1px solid #0ff; text-align: left; }
+th { border-bottom: 2px solid #0ff; }
+.rank { width: 50px; }
+</style>
+</head>
+<body>
+
+<!-- Start Screen -->
+<div class="screen" id="startScreen">
+  <h1>Math Dash Pro</h1>
+  <input type="text" id="playerNameInput" placeholder="Enter your name" />
+  <br>
+  <button onclick="startGame()">Start Game</button>
+</div>
+
+<!-- Game Screen -->
+<div class="screen" id="gameScreen" style="display:none;">
+  <div class="timer">Time Left: <span id="time">60</span>s</div>
+  <div class="problem-timer">Problem Timer: <span id="problemTime">5</span>s</div>
+  <div class="problem" id="problem">0 + 0 = ?</div>
+  <input type="text" id="answer" placeholder="Your answer" />
+  <button onclick="submitAnswer()">Submit</button>
+  <div class="scoreboard">
+    Score: <span id="score">0</span> | Attempted: <span id="attempted">0</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="rank">Rank</th>
+        <th>Name</th>
+        <th>Correct/Attempts</th>
+        <th>Percentage</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
+  
+  <button id="restartButton" style="margin-top:10px; display:none;" onclick="restartGame()">Restart Game</button>
+</div>
+
+<script>
+// Game Variables
+let score = 0, time = 60, currentAnswer = "", attempted = 0, problemTime = 5;
+let playerName = "";
+let gameInterval, problemInterval;
+
+// Define custom problems here
+
+const problems = [
+  {question:"2+2", answer:"4"}, {question:"5*3", answer:"15"},
+  {question:"10/2", answer:"5"}, {question:"7-3", answer:"4"},
+  {question:"6*6", answer:"36"}, {question:"8+12", answer:"20"},
+  {question:"9*5", answer:"45"}, {question:"15-7", answer:"8"},
+  {question:"12/4", answer:"3"}, {question:"7+8", answer:"15"},
+  {question:"3*9", answer:"27"}, {question:"14-5", answer:"9"},
+  {question:"20/5", answer:"4"}, {question:"6+7", answer:"13"},
+  {question:"8*8", answer:"64"}, {question:"18-9", answer:"9"},
+  {question:"16/2", answer:"8"}, {question:"11+12", answer:"23"},
+  {question:"4*7", answer:"28"}, {question:"19-6", answer:"13"},
+  {question:"24/6", answer:"4"}, {question:"5+15", answer:"20"},
+  {question:"9*3", answer:"27"}, {question:"17-8", answer:"9"},
+  {question:"30/5", answer:"6"}, {question:"6+14", answer:"20"},
+  {question:"7*6", answer:"42"}, {question:"21-12", answer:"9"},
+  {question:"18/3", answer:"6"}, {question:"8+13", answer:"21"},
+  {question:"5*7", answer:"35"}, {question:"20-4", answer:"16"},
+  {question:"36/6", answer:"6"}, {question:"9+11", answer:"20"},
+  {question:"6*8", answer:"48"}, {question:"15-5", answer:"10"},
+  {question:"40/8", answer:"5"}, {question:"7+16", answer:"23"},
+  {question:"4*9", answer:"36"}, {question:"18-7", answer:"11"},
+  {question:"21/3", answer:"7"}, {question:"5+17", answer:"22"},
+  {question:"8*5", answer:"40"}, {question:"19-10", answer:"9"},
+  {question:"45/9", answer:"5"}, {question:"6+18", answer:"24"},
+  {question:"9*4", answer:"36"}, {question:"14-6", answer:"8"},
+  {question:"12/3", answer:"4"},
+
+
+
+  
+{question:"2+2", answer:"4"},{question:"5*3", answer:"15"},{question:"10/2", answer:"5"},
+{question:"7-3", answer:"4"},{question:"6*6", answer:"36"},{question:"8+12", answer:"20"},
+{question:"9*5", answer:"45"},{question:"15-7", answer:"8"},{question:"12/4", answer:"3"},
+{question:"7+8", answer:"15"},{question:"3*9", answer:"27"},{question:"14-5", answer:"9"},
+{question:"20/5", answer:"4"},{question:"6+7", answer:"13"},{question:"8*8", answer:"64"},
+{question:"18-9", answer:"9"},{question:"16/2", answer:"8"},{question:"11+12", answer:"23"},
+{question:"4*7", answer:"28"},{question:"19-6", answer:"13"},{question:"24/6", answer:"4"},
+{question:"5+15", answer:"20"},{question:"9*3", answer:"27"},{question:"17-8", answer:"9"},
+{question:"30/5", answer:"6"},{question:"6+14", answer:"20"},{question:"7*6", answer:"42"},
+{question:"21-12", answer:"9"},{question:"18/3", answer:"6"},{question:"8+13", answer:"21"},
+{question:"5*7", answer:"35"},{question:"20-4", answer:"16"},{question:"36/6", answer:"6"},
+{question:"9+11", answer:"20"},{question:"6*8", answer:"48"},{question:"15-5", answer:"10"},
+{question:"40/8", answer:"5"},{question:"7+16", answer:"23"},{question:"4*9", answer:"36"},
+{question:"18-7", answer:"11"},{question:"21/3", answer:"7"},{question:"5+17", answer:"22"},
+{question:"8*5", answer:"40"},{question:"19-10", answer:"9"},{question:"45/9", answer:"5"},
+{question:"6+18", answer:"24"},{question:"9*4", answer:"36"},{question:"14-6", answer:"8"},
+{question:"12/3", answer:"4"},{question:"3+7", answer:"10"},{question:"7*7", answer:"49"},
+{question:"20-9", answer:"11"},{question:"27/3", answer:"9"},{question:"8+9", answer:"17"},
+{question:"5*6", answer:"30"},{question:"16-5", answer:"11"},{question:"18/2", answer:"9"},
+{question:"4+12", answer:"16"},{question:"9*9", answer:"81"},{question:"22-11", answer:"11"},
+{question:"36/6", answer:"6"},{question:"7+14", answer:"21"},{question:"6*5", answer:"30"},
+{question:"15-3", answer:"12"},{question:"24/4", answer:"6"},{question:"8+7", answer:"15"},
+{question:"3*8", answer:"24"},{question:"19-8", answer:"11"},{question:"32/8", answer:"4"},
+{question:"5+19", answer:"24"},{question:"9*2", answer:"18"},{question:"18-6", answer:"12"},
+{question:"42/7", answer:"6"},{question:"6+15", answer:"21"},{question:"8*4", answer:"32"},
+{question:"21-9", answer:"12"},{question:"20/5", answer:"4"},{question:"7+13", answer:"20"},
+{question:"5*8", answer:"40"},{question:"16-7", answer:"9"},{question:"30/6", answer:"5"},
+{question:"9+14", answer:"23"},{question:"6*7", answer:"42"},{question:"12-4", answer:"8"},
+{question:"36/9", answer:"4"},{question:"4+15", answer:"19"},{question:"7*5", answer:"35"},
+{question:"18-5", answer:"13"},{question:"24/8", answer:"3"},{question:"8+16", answer:"24"},
+{question:"3*6", answer:"18"},{question:"20-3", answer:"17"},{question:"30/5", answer:"6"},
+{question:"5+12", answer:"17"},{question:"9*5", answer:"45"},{question:"14-7", answer:"7"},
+{question:"42/6", answer:"7"},{question:"6+14", answer:"20"},{question:"8*3", answer:"24"},
+{question:"19-9", answer:"10"},{question:"36/6", answer:"6"},{question:"7+12", answer:"19"},
+{question:"4*8", answer:"32"},{question:"15-6", answer:"9"},{question:"20/4", answer:"5"},
+{question:"5+16", answer:"21"},{question:"9*6", answer:"54"},{question:"17-8", answer:"9"},
+{question:"48/8", answer:"6"},{question:"6+13", answer:"19"},{question:"7*4", answer:"28"},
+{question:"21-11", answer:"10"},{question:"36/9", answer:"4"},{question:"8+18", answer:"26"},
+{question:"3*7", answer:"21"},{question:"20-5", answer:"15"},{question:"24/6", answer:"4"},
+{question:"5+14", answer:"19"},{question:"6*9", answer:"54"},{question:"18-8", answer:"10"},
+{question:"42/7", answer:"6"},{question:"7+17", answer:"24"},{question:"4*6", answer:"24"},
+{question:"15-9", answer:"6"},{question:"20/5", answer:"4"},{question:"9+13", answer:"22"},
+{question:"8*7", answer:"56"},{question:"16-5", answer:"11"},{question:"36/6", answer:"6"},
+{question:"6+11", answer:"17"},{question:"3*9", answer:"27"},{question:"21-10", answer:"11"},
+{question:"24/8", answer:"3"},{question:"5+18", answer:"23"},{question:"7*8", answer:"56"},
+{question:"18-6", answer:"12"},{question:"30/5", answer:"6"},{question:"8+15", answer:"23"},
+{question:"6*4", answer:"24"},{question:"14-6", answer:"8"},{question:"40/8", answer:"5"},
+{question:"9+17", answer:"26"},{question:"5*9", answer:"45"},{question:"16-7", answer:"9"},
+{question:"36/6", answer:"6"},{question:"7+18", answer:"25"},{question:"4*5", answer:"20"},
+{question:"20-9", answer:"11"},{question:"24/6", answer:"4"},{question:"8+14", answer:"22"},
+{question:"3*5", answer:"15"},{question:"18-7", answer:"11"},{question:"42/7", answer:"6"},
+{question:"6+19", answer:"25"},{question:"7*9", answer:"63"},{question:"15-5", answer:"10"},
+{question:"30/6", answer:"5"},{question:"5+13", answer:"18"},{question:"9*8", answer:"72"},
+{question:"17-6", answer:"11"},{question:"36/9", answer:"4"},{question:"8+11", answer:"19"},
+{question:"6*3", answer:"18"},{question:"21-7", answer:"14"},{question:"24/4", answer:"6"},
+{question:"5+20", answer:"25"},{question:"7*3", answer:"21"},{question:"18-9", answer:"9"}
+];
+
+
+
+let leaderboard = [];
+
+const startScreen = document.getElementById('startScreen');
+const gameScreen = document.getElementById('gameScreen');
+const leaderboardBody = document.getElementById('leaderboardBody');
+const restartButton = document.getElementById('restartButton');
+
+function startGame() {
+  playerName = document.getElementById('playerNameInput').value || "Player";
+  startScreen.style.display = 'none';
+  gameScreen.style.display = 'block';
+  score = 0;
+  attempted = 0;
+  time = 60;
+  problemTime = 5;
+  restartButton.style.display = 'none';
+  document.getElementById('score').textContent = score;
+  document.getElementById('attempted').textContent = attempted;
+  document.getElementById('time').textContent = time;
+  document.getElementById('problemTime').textContent = problemTime;
+  generateProblem();
+  startTimer();
+  startProblemTimer();
+  updateLeaderboard();
+}
+
+function generateProblem() {
+  const randomIndex = Math.floor(Math.random() * problems.length);
+  const prob = problems[randomIndex];
+  currentAnswer = prob.answer;
+  const problemEl = document.getElementById('problem');
+  problemEl.textContent = prob.question;
+  problemEl.className = 'problem';
+  document.getElementById('answer').value = '';
+  problemTime = 5;
+  document.getElementById('problemTime').textContent = problemTime;
+}
+
+function submitAnswer(timeout=false) {
+  if(time <=0) return;
+  const userAnswer = document.getElementById('answer').value.trim();
+  const problemEl = document.getElementById('problem');
+  attempted++;
+  if(!timeout && userAnswer === currentAnswer) {
+    score +=1;
+    problemEl.classList.add('correct');
+  } else {
+    problemEl.classList.add('wrong');
+  }
+  document.getElementById('score').textContent = score;
+  document.getElementById('attempted').textContent = attempted;
+  updateLeaderboard();
+  generateProblem();
+}
+
+function startTimer() {
+  clearInterval(gameInterval);
+  gameInterval = setInterval(()=>{
+    time--;
+    document.getElementById('time').textContent = time;
+    if(time<=0){
+      clearInterval(gameInterval);
+      clearInterval(problemInterval);
+      endGame();
+    }
+  },1000);
+}
+
+function startProblemTimer() {
+  clearInterval(problemInterval);
+  problemInterval = setInterval(()=>{
+    problemTime--;
+    if(problemTime<=0){
+      submitAnswer(true);
+    }
+    document.getElementById('problemTime').textContent = problemTime;
+  },1000);
+}
+
+function updateLeaderboard() {
+  const percent = attempted===0?0:Math.round((score/attempted)*100);
+
+  let found = leaderboard.find(p=>p.name===playerName);
+  if(found){
+    if(percent>found.percent){
+      found.correct = score;
+      found.attempts = attempted;
+      found.percent = percent;
+    } else {
+      found.correct = score;
+      found.attempts = attempted;
+      found.percent = percent;
+    }
+  } else {
+    leaderboard.push({name:playerName, correct:score, attempts:attempted, percent});
+  }
+
+  leaderboard.sort((a,b)=>b.percent-a.percent);
+
+  leaderboardBody.innerHTML = '';
+  leaderboard.forEach((p,index)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="rank">${index+1}</td>
+                    <td>${p.name}</td>
+                    <td>${p.correct}/${p.attempts}</td>
+                    <td>${p.percent}%</td>`;
+    leaderboardBody.appendChild(tr);
+  });
+}
+
+function endGame(){
+  document.getElementById('problem').textContent = `Time's up! ${score}/${attempted} correct (${attempted?Math.round(score/attempted*100):0}%)`;
+  restartButton.style.display = 'inline-block';
+}
+
+function restartGame(){
+  startScreen.style.display = 'block';
+  gameScreen.style.display = 'none';
+  document.getElementById('playerNameInput').value = '';
+}
+
+document.getElementById('answer').addEventListener('keydown',e=>{
+  if(e.key==='Enter') submitAnswer();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <title>poker 5 </title>
+     <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: #0a0a23;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #ffe600;
+      text-shadow: 0 0 8px #ffcc00;
+      margin-bottom: 1rem;
+    }
+
+    #gameInfo {
+      margin-bottom: 1rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #ffd966;
+      user-select: none;
+    }
+
+    #discardCount {
+      font-weight: 700;
+      color: #ffe600;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      user-select: none;
+    }
+
+    #hand {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      width: 80px;
+      height: 120px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 6px #222;
+      color: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px;
+      user-select: none;
+      position: relative;
+      font-weight: 600;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card.red {
+      color: #d31a2c;
+    }
+    .card.selected {
+      transform: translateY(-15px);
+      box-shadow: 0 0 16px 3px #ffe600;
+      border: 2px solid #ffe600;
+    }
+    .card .corner {
+      font-size: 1.1rem;
+    }
+    .card .suit {
+      font-size: 2.5rem;
+      text-align: center;
+      line-height: 1;
+    }
+
+    #buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #ffcc00;
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 12px #ffcc00aa;
+      transition: background-color 0.3s;
+      margin: 0 0.5rem;
+      min-width: 110px;
+    }
+    button:hover:not(:disabled) {
+      background-color: #e6b800;
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    #message {
+      font-size: 1.2rem;
+      color: #ffe600;
+      min-height: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    #handRank {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffcc00;
+      text-shadow: 0 0 6px #ffcc00bb;
+      margin-bottom: 1.5rem;
+      user-select: none;
+      min-height: 1.5em;
+    }
+
+    #scoreboard {
+      margin-top: auto;
+      width: 100%;
+      max-width: 600px;
+      color: #ffdb4d;
+      font-weight: 700;
+      font-size: 1.3rem;
+      text-align: center;
+      user-select: none;
+      border-top: 2px solid #ffcc00;
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>poker 5 </h1>
+  <div id="gameInfo"></div>
+  <div id="discardCount"></div>
+  <div id="hand"></div>
+
+  <div id="buttons">
+    <button id="discardButton" disabled>Discard</button>
+    <button id="playButton" disabled>Play Hand</button>
+    <button id="nextRoundButton" disabled>Next Round</button>
+    <button id="restartButton" style="display:none;">Restart</button>
+  </div>
+
+  <div id="message"></div>
+  <div id="handRank"></div>
+
+  <div id="scoreboard">
+    <div>Round: <span id="round">1</span> / 3</div>
+    <div>Score: <span id="score">0</span></div>
+  </div>
+
+<script>
+(() => {
+  const suits = ['♠', '♥', '♦', '♣'];
+  const redSuits = ['♥', '♦'];
+  const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+  const handScores = {
+    "Royal Flush": 300,
+    "Straight Flush": 200,
+    "Four of a Kind": 150,
+    "Full House": 120,
+    "Flush": 100,
+    "Straight": 100,
+    "Three of a Kind": 75,
+    "Two Pair": 50,
+    "One Pair": 25,
+    "High Card": 15
+  };
+
+  const rankValues = {
+    '2': 2, '3': 3, '4': 4, '5': 5,
+    '6': 6, '7': 7, '8': 8, '9': 9,
+    '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14
+  };
+
+  let deck = [];
+  let hand = [];
+  let selectedIndices = new Set();
+  let handPlayed = false;
+  let round = 1;
+  const maxRounds = 5;
+  let score = 0;
+  const targetScore = 350;
+  const maxDiscardUses = 5;  // max times discard button can be pressed per round
+  let discardUses = 0;
+
+  // DOM elements
+  const handContainer = document.getElementById('hand');
+  const discardButton = document.getElementById('discardButton');
+  const playButton = document.getElementById('playButton');
+  const nextRoundButton = document.getElementById('nextRoundButton');
+  const restartButton = document.getElementById('restartButton');
+  const messageDiv = document.getElementById('message');
+  const handRankDiv = document.getElementById('handRank');
+  const gameInfoDiv = document.getElementById('gameInfo');
+  const discardCountDiv = document.getElementById('discardCount');
+  const roundSpan = document.getElementById('round');
+  const scoreSpan = document.getElementById('score');
+
+  function buildDeck() {
+    const d = [];
+    for (const suit of suits) {
+      for (const rank of ranks) {
+        d.push({ suit, rank });
+      }
+    }
+    return d;
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function drawCards(count) {
+    if(deck.length < count) {
+      deck = deck.concat(buildDeck());
+      shuffle(deck);
+    }
+    return deck.splice(0, count);
+  }
+
+  function createCardElement(card, index) {
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'card';
+    if(redSuits.includes(card.suit)) cardDiv.classList.add('red');
+    cardDiv.innerHTML = `
+      <div class="corner" style="align-self:flex-start">${card.rank}${card.suit}</div>
+      <div class="suit">${card.suit}</div>
+      <div class="corner" style="align-self:flex-end;transform:rotate(180deg)">${card.rank}${card.suit}</div>
+    `;
+
+    if(!handPlayed) {
+      cardDiv.style.cursor = 'pointer';
+      cardDiv.addEventListener('click', () => toggleSelectCard(index));
+    }
+    if(selectedIndices.has(index)) {
+      cardDiv.classList.add('selected');
+    }
+    return cardDiv;
+  }
+
+  function toggleSelectCard(index) {
+    if(selectedIndices.has(index)) {
+      selectedIndices.delete(index);
+    } else {
+      selectedIndices.add(index);
+    }
+    renderHand();
+    updateButtons();
+  }
+
+  function renderHand() {
+    handContainer.innerHTML = '';
+    hand.forEach((card, idx) => {
+      handContainer.appendChild(createCardElement(card, idx));
+    });
+    updateHandRank();
+    updateDiscardCount();
+  }
+
+  function updateButtons() {
+    discardButton.disabled = handPlayed || selectedIndices.size === 0 || discardUses >= maxDiscardUses;
+    playButton.disabled = handPlayed;
+    nextRoundButton.disabled = !handPlayed;
+  }
+
+  function updateGameInfo() {
+    gameInfoDiv.textContent = `Round: ${round} / ${maxRounds} | Score: ${score} / ${targetScore}`;
+  }
+
+  function updateDiscardCount() {
+    discardCountDiv.textContent = `Discard presses: ${discardUses} / ${maxDiscardUses}`;
+  }
+
+  // Hand evaluation function
+  function evaluateHand(cards) {
+    const values = cards.map(c => rankValues[c.rank]).sort((a,b) => a-b);
+    const suitsArr = cards.map(c => c.suit);
+
+    const counts = {};
+    values.forEach(v => counts[v] = (counts[v] || 0) + 1);
+    const countVals = Object.values(counts).sort((a,b) => b-a);
+
+    const isFlush = suitsArr.every(s => s === suitsArr[0]);
+
+    const isStraight = (vals) => vals.every((v,i,a) => i === 0 || v === a[i-1] + 1);
+
+    const lowAceValues = [...values];
+    if(lowAceValues.includes(14)) {
+      lowAceValues[lowAceValues.indexOf(14)] = 1;
+      lowAceValues.sort((a,b) => a-b);
+    }
+    const straight = isStraight(values) || isStraight(lowAceValues);
+
+    const royalRanks = [10,11,12,13,14];
+    const isRoyal = isFlush && royalRanks.every(r => values.includes(r));
+
+    if(isRoyal) return "Royal Flush";
+    if(isFlush && straight) return "Straight Flush";
+    if(countVals[0] === 4) return "Four of a Kind";
+    if(countVals[0] === 3 && countVals[1] === 2) return "Full House";
+    if(isFlush) return "Flush";
+    if(straight) return "Straight";
+    if(countVals[0] === 3) return "Three of a Kind";
+    if(countVals[0] === 2 && countVals[1] === 2) return "Two Pair";
+    if(countVals[0] === 2) return "One Pair";
+    return "High Card";
+  }
+
+  function updateHandRank() {
+    if(hand.length === 5) {
+      const rank = evaluateHand(hand);
+      handRankDiv.textContent = `Hand Rank: ${rank}`;
+    } else {
+      handRankDiv.textContent = '';
+    }
+  }
+
+  function discardSelected() {
+    if(selectedIndices.size === 0) {
+      messageDiv.textContent = "Select cards to discard first!";
+      return;
+    }
+
+    if(discardUses >= maxDiscardUses) {
+      messageDiv.textContent = `You have already used your ${maxDiscardUses} discard presses this round.`;
+      return;
+    }
+
+    // Discard the selected cards, replace with new ones
+    const indices = [...selectedIndices].sort((a,b) => a - b);
+    const newCards = drawCards(indices.length);
+    indices.forEach((idx, i) => {
+      hand[idx] = newCards[i];
+    });
+
+    discardUses++;
+    selectedIndices.clear();
+
+    renderHand();
+    updateButtons();
+    updateGameInfo();
+    messageDiv.textContent = `Discard used ${discardUses} / ${maxDiscardUses} times.`;
+  }
+
+  function playHand() {
+    if(handPlayed) return;
+
+    handPlayed = true;
+
+    const rank = evaluateHand(hand);
+    const points = handScores[rank] || 0;
+    score += points;
+
+    messageDiv.textContent = `You played a ${rank} and earned ${points} points!`;
+
+    updateGameInfo();
+
+    discardButton.disabled = true;
+    playButton.disabled = true;
+
+    if(round >= maxRounds) {
+      nextRoundButton.disabled = true;
+      messageDiv.textContent += score >= targetScore ? " 🎉 You won the game!" : " Game over! Try again.";
+      restartButton.style.display = 'inline-block';
+    } else {
+      nextRoundButton.disabled = false;
+    }
+  }
+
+  function nextRound() {
+    if(round >= maxRounds) return;
+
+    round++;
+    startRound();
+  }
+
+  function restartRun() {
+    round = 1;
+    score = 0;
+    discardUses = 0;
+    selectedIndices.clear();
+    handPlayed = false;
+    restartButton.style.display = 'none';
+    messageDiv.textContent = '';
+    startRound();
+  }
+
+  function startRound() {
+    deck = buildDeck();
+    shuffle(deck);
+    hand = drawCards(5);
+    discardUses = 0;
+    selectedIndices.clear();
+    handPlayed = false;
+    messageDiv.textContent = "New hand dealt. Select cards to discard or play hand.";
+    updateGameInfo();
+    updateDiscardCount();
+    renderHand();
+    updateButtons();
+    roundSpan.textContent = round;
+    scoreSpan.textContent = score;
+  }
+
+  // Setup event listeners
+  discardButton.addEventListener('click', discardSelected);
+  playButton.addEventListener('click', playHand);
+  nextRoundButton.addEventListener('click', nextRound);
+  restartButton.addEventListener('click', restartRun);
+
+  // Start game
+  startRound();
+})();
+</script>
+
+</body>
+</html>

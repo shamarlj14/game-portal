@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wordle 1.2v</title>
+<style>
+  body {
+    background: #121213;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0; padding: 20px;
+    user-select: none;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  #scoreboard {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    background: #1a1a1a;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    border: 2px solid #333;
+  }
+  #board {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    gap: 8px;
+  }
+  .tile {
+    width: 60px;
+    height: 60px;
+    background: #3a3a3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 32px;
+    text-transform: uppercase;
+    border-radius: 5px;
+    user-select: none;
+  }
+  .correct {
+    background-color: #538d4e;
+    border: 2px solid #538d4e;
+  }
+  .present {
+    background-color: #b59f3b;
+    border: 2px solid #b59f3b;
+  }
+  .absent {
+    background-color: #3a3a3c;
+    opacity: 0.5;
+  }
+  #keyboard {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .key {
+    padding: 12px 15px;
+    background: #818384;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    min-width: 40px;
+    text-transform: uppercase;
+    box-shadow: 0 2px #3a3a3c;
+    transition: background 0.2s ease;
+  }
+  .key.correct {
+    background-color: #538d4e;
+    box-shadow: 0 2px #538d4e;
+  }
+  .key.present {
+    background-color: #b59f3b;
+    box-shadow: 0 2px #b59f3b;
+  }
+  .key.absent {
+    background-color: #3a3a3c;
+    opacity: 0.5;
+    box-shadow: none;
+  }
+  .key:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Wordle 1.2v</h1>
+<div id="scoreboard">Wins: 0 | Losses: 0</div>
+<div id="board"></div>
+<div id="keyboard"></div>
+
+<script>
+ 
+  const WORDS = [
+  "apple", "banana", "orange", "grape", "peach", "pear", "plum", "cherry", "berry", "melon",
+  "cat", "dog", "frog", "mouse", "horse", "cow", "pig", "sheep", "goat", "duck",
+  "bird", "eagle", "hawk", "owl", "crow", "sparrow", "parrot", "pigeon", "robin", "swan",
+  "car", "truck", "bus", "bike", "train", "plane", "boat", "ship", "taxi", "van",
+  "road", "street", "avenue", "lane", "highway", "bridge", "tunnel", "parkway", "alley", "drive",
+  "house", "home", "apartment", "condo", "cottage", "castle", "palace", "shack", "hut", "mansion",
+  "door", "window", "roof", "wall", "floor", "ceiling", "stairs", "balcony", "garage", "garden",
+  "book", "pen", "pencil", "notebook", "paper", "desk", "chair", "table", "lamp", "computer",
+  "phone", "tablet", "camera", "television", "radio", "speaker", "monitor", "keyboard", "mouse", "printer",
+  "water", "fire", "earth", "air", "wind", "storm", "rain", "snow", "hail", "fog",
+  "sun", "moon", "star", "cloud", "sky", "space", "planet", "comet", "meteor", "galaxy",
+  "tree", "flower", "grass", "bush", "weed", "leaf", "root", "seed", "branch", "trunk",
+  "food", "meat", "fish", "bread", "cheese", "milk", "egg", "rice", "soup", "salad",
+  "friend", "family", "child", "parent", "brother", "sister", "cousin", "uncle", "aunt", "neighbor",
+  "love", "hate", "fear", "joy", "hope", "dream", "wish", "pride", "trust", "peace",
+  "work", "job", "office", "factory", "school", "university", "hospital", "store", "shop", "market",
+  "money", "bank", "coin", "bill", "price", "cost", "sale", "debt", "tax", "loan",
+  "time", "hour", "minute", "second", "day", "week", "month", "year", "decade", "century",
+  "color", "red", "blue", "green", "yellow", "orange", "purple", "pink", "black", "white",
+  "sound", "noise", "music", "voice", "song", "beat", "rhythm", "melody", "tone", "echo",
+  "light", "dark", "shadow", "bright", "dim", "glow", "shine", "flash", "spark", "flare",
+  "animal", "insect", "spider", "ant", "bee", "fly", "worm", "snake", "lizard", "turtle",
+  "vehicle", "engine", "wheel", "brake", "steering", "fuel", "oil", "speed", "gear", "clutch",
+  "sport", "game", "ball", "team", "player", "score", "win", "lose", "draw", "coach",
+  "country", "state", "city", "town", "village", "street", "road", "avenue", "park", "square",
+  "weather", "hot", "cold", "warm", "cool", "rainy", "sunny", "cloudy", "windy", "stormy",
+  "emotion", "happy", "sad", "angry", "calm", "scared", "excited", "bored", "tired", "nervous",
+  "clothing", "shirt", "pants", "dress", "skirt", "hat", "shoe", "sock", "coat", "glove",
+  "tool", "hammer", "screwdriver", "wrench", "drill", "saw", "knife", "axe", "shovel", "paintbrush",
+  "plant", "tree", "flower", "grass", "weed", "bush", "vine", "moss", "algae", "fern",
+  "body", "head", "arm", "leg", "hand", "foot", "eye", "ear", "nose", "mouth",
+  "technology", "computer", "internet", "phone", "software", "hardware", "program", "code", "app", "website",
+  "holiday", "Christmas", "Easter", "Halloween", "Thanksgiving", "NewYear", "Independence", "LaborDay", "VeteransDay", "MemorialDay",
+  "food", "pizza", "burger", "sandwich", "pasta", "salad", "soup", "cake", "cookie", "icecream",
+  "drink", "water", "juice", "coffee", "tea", "milk", "soda", "beer", "wine", "cocktail",
+  "furniture", "table", "chair", "sofa", "bed", "desk", "shelf", "cabinet", "dresser", "lamp",
+  "bodypart", "heart", "brain", "lung", "liver", "kidney", "stomach", "muscle", "bone", "skin",
+  "nature", "river", "lake", "mountain", "hill", "valley", "forest", "desert", "beach", "island",
+  "job", "teacher", "doctor", "nurse", "engineer", "artist", "farmer", "chef", "driver", "police",
+  "music", "guitar", "piano", "drums", "violin", "flute", "singer", "band", "concert", "album",
+  "transport", "bus", "car", "train", "plane", "bike", "boat", "ship", "subway", "taxi",
+  "school", "class", "student", "teacher", "lesson", "homework", "exam", "grade", "report", "library",
+  "family", "mother", "father", "brother", "sister", "son", "daughter", "grandma", "grandpa", "cousin",
+  "sports", "soccer", "basketball", "baseball", "tennis", "golf", "hockey", "swimming", "running", "cycling",
+  "weather", "rain", "snow", "sun", "cloud", "storm", "wind", "fog", "hail", "lightning",
+  "colors", "red", "blue", "green", "yellow", "orange", "purple", "pink", "brown", "black",
+  "shapes", "circle", "square", "triangle", "rectangle", "oval", "diamond", "star", "heart", "arrow",
+  "numbers", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+  "feelings", "happy", "sad", "angry", "scared", "excited", "bored", "tired", "nervous", "proud",
+  "actions", "run", "jump", "swim", "walk", "fly", "read", "write", "eat", "sleep", "talk",
+  "adjectives", "big", "small", "fast", "slow", "hot", "cold", "new", "old", "good", "bad",
+  "verbs", "see", "hear", "feel", "think", "know", "say", "make", "take", "come", "go",
+  "places", "school", "home", "park", "store", "restaurant", "hospital", "library", "museum", "airport",
+  "animals", "dog", "cat", "bird", "fish", "horse", "cow", "pig", "chicken", "sheep",
+  "tools", "hammer", "screwdriver", "wrench", "drill", "saw", "knife", "axe", "shovel", "paintbrush",
+  "clothing", "shirt", "pants", "dress", "hat", "coat", "gloves", "shoes", "socks", "belt",
+  "bodyparts", "head", "arm", "leg", "hand", "foot", "eye", "ear", "nose", "mouth",
+  "foods", "bread", "cheese", "meat", "fruit", "vegetable", "soup", "salad", "dessert", "drink",
+  "transportation", "car", "bus", "train", "plane", "bike", "boat", "ship", "subway", "taxi",
+  "weather", "sunny", "rainy", "cloudy", "snowy", "windy", "stormy", "foggy", "hot", "cold",
+  "emotions", "happy", "sad", "angry", "scared", "excited", "bored", "tired", "nervous", "proud",
+  "numbers", "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+  "colors", "red", "blue", "green", "yellow", "orange", "purple", "pink", "brown", "black", "white",
+  "sports", "soccer", "basketball", "baseball", "tennis", "golf", "hockey", "swimming", "running", "cycling",
+  "occupations", "teacher", "doctor", "nurse", "engineer", "artist", "farmer", "chef", "driver", "police",
+  "family", "mother", "father", "brother", "sister", "son", "daughter", "grandmother", "grandfather", "cousin",
+  "actions", "run", "jump", "swim", "walk", "fly", "read", "write", "eat", "sleep", "talk",
+  "adjectives", "big", "small", "fast", "slow", "hot", "cold", "new", "old", "good", "bad",
+  "verbs", "see", "hear", "feel", "think", "know", "say", "make", "take", "come", "go",
+  "places", "school", "home", "park", "store", "restaurant", "hospital", "library", "museum", "airport",
+  "toys", "ball", "doll", "puzzle", "blocks", "car", "train", "lego", "kite", "yo-yo",
+  "technology", "computer", "internet", "phone", "software", "hardware", "program", "code", "app", "website",
+  "furniture", "table", "chair", "sofa", "bed", "desk", "shelf", "cabinet", "dresser", "lamp",
+  "vehicles", "car", "truck", "motorcycle", "bicycle", "bus", "train", "plane", "boat", "ship",
+  "instruments", "guitar", "piano", "drums", "violin", "flute", "trumpet", "saxophone", "cello", "harp",
+  "clothes", "shirt", "pants", "dress", "coat", "hat", "gloves", "scarf", "shoes", "belt",
+  "flowers", "rose", "tulip", "daisy", "lily", "orchid", "sunflower", "violet", "daffodil", "marigold",
+  "fruits", "apple", "banana", "orange", "pear", "peach", "grape", "plum", "cherry", "melon",
+  "vegetables", "carrot", "potato", "tomato", "lettuce", "onion", "pepper", "cucumber", "spinach", "broccoli",
+  "musical", "song", "dance", "melody", "rhythm", "beat", "voice", "band", "concert", "album",
+  "weather", "rain", "snow", "sun", "cloud", "storm", "wind", "fog", "miamidolphins", "lightning",
+];
+
+  
+
+  let solution = "";
+  let currentRow = 0;
+  let currentTile = 0;
+  let gameOver = false;
+  let maxRows = 6;
+  let maxTiles = 5; // will change dynamically
+
+  const board = document.getElementById("board");
+  const keyboard = document.getElementById("keyboard");
+  const scoreboard = document.getElementById("scoreboard");
+
+  let wins = parseInt(localStorage.getItem("wordleWins")) || 0;
+  let losses = parseInt(localStorage.getItem("wordleLosses")) || 0;
+  updateScoreboard();
+
+  function createBoard() {
+    board.innerHTML = "";
+    board.style.gridTemplateRows = `repeat(${maxRows}, 1fr)`;
+    for (let i = 0; i < maxRows; i++) {
+      const row = document.createElement("div");
+      row.classList.add("row");
+      row.style.gridTemplateColumns = `repeat(${maxTiles}, 60px)`;
+      for (let j = 0; j < maxTiles; j++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        row.appendChild(tile);
+      }
+      board.appendChild(row);
+    }
+  }
+
+  const KEYS = [
+    ["q","w","e","r","t","y","u","i","o","p"],
+    ["a","s","d","f","g","h","j","k","l"],
+    ["Enter","Del","z","x","c","v","b","n","m"]
+  ];
+
+  function createKeyboard() {
+    keyboard.innerHTML = "";
+    KEYS.forEach(row => {
+      const rowDiv = document.createElement("div");
+      rowDiv.classList.add("keyboard-row");
+      row.forEach(key => {
+        const button = document.createElement("button");
+        button.textContent = key;
+        button.classList.add("key");
+        button.id = "key-" + key.toLowerCase();
+        button.addEventListener("click", () => handleKey(key));
+        rowDiv.appendChild(button);
+      });
+      keyboard.appendChild(rowDiv);
+    });
+  }
+
+  function updateScoreboard() {
+    scoreboard.textContent = `Wins: ${wins} | Losses: ${losses}`;
+  }
+
+  function startGame() {
+    solution = WORDS[Math.floor(Math.random() * WORDS.length)];
+    maxTiles = solution.length; // dynamically set tile count
+    currentRow = 0;
+    currentTile = 0;
+    gameOver = false;
+    createBoard();
+    createKeyboard();
+    updateScoreboard();
+  }
+
+  function handleKey(key) {
+    if (gameOver) return;
+    if (key === "Enter") {
+      submitGuess();
+    } else if (key === "Del") {
+      deleteLetter();
+    } else if (/^[a-z]$/.test(key)) {
+      addLetter(key);
+    }
+  }
+
+  function addLetter(letter) {
+    if (currentTile < maxTiles) {
+      const row = board.children[currentRow];
+      const tile = row.children[currentTile];
+      tile.textContent = letter.toUpperCase();
+      currentTile++;
+    }
+  }
+
+  function deleteLetter() {
+    if (currentTile > 0) {
+      currentTile--;
+      const row = board.children[currentRow];
+      const tile = row.children[currentTile];
+      tile.textContent = "";
+    }
+  }
+
+  function submitGuess() {
+    if (currentTile !== maxTiles) return;
+    const row = board.children[currentRow];
+    let guess = "";
+    for (let i = 0; i < maxTiles; i++) {
+      guess += row.children[i].textContent.toLowerCase();
+    }
+
+    const solutionChars = solution.split("");
+    const guessChars = guess.split("");
+    const tileColors = Array(maxTiles).fill("absent");
+
+    for (let i = 0; i < maxTiles; i++) {
+      if (guessChars[i] === solutionChars[i]) {
+        tileColors[i] = "correct";
+        solutionChars[i] = null;
+        guessChars[i] = null;
+      }
+    }
+    for (let i = 0; i < maxTiles; i++) {
+      if (guessChars[i] && solutionChars.includes(guessChars[i])) {
+        tileColors[i] = "present";
+        solutionChars[solutionChars.indexOf(guessChars[i])] = null;
+        guessChars[i] = null;
+      }
+    }
+
+    for (let i = 0; i < maxTiles; i++) {
+      const tile = row.children[i];
+      tile.classList.add(tileColors[i]);
+      const keyBtn = document.getElementById("key-" + tile.textContent.toLowerCase());
+      if (keyBtn) {
+        if (tileColors[i] === "correct" || 
+          (tileColors[i] === "present" && !keyBtn.classList.contains("correct")) || 
+          (tileColors[i] === "absent" && !keyBtn.classList.contains("correct") && !keyBtn.classList.contains("present"))
+        ) {
+          keyBtn.classList.remove("correct","present","absent");
+          keyBtn.classList.add(tileColors[i]);
+        }
+      }
+    }
+
+    if (guess === solution) {
+      wins++;
+      updateScoreboard();
+      gameOver = true;
+      setTimeout(() => {
+        alert("🎉 You Win! Starting new game.");
+        startGame();
+      }, 1200);
+      return;
+    }
+
+    currentRow++;
+    currentTile = 0;
+
+    if (currentRow === maxRows) {
+      losses++;
+      updateScoreboard();
+      gameOver = true;
+      setTimeout(() => {
+        alert(`💀 Game Over! The word was "${solution}". Starting new game.`);
+        startGame();
+      }, 1200);
+    }
+  }
+
+  window.addEventListener("keydown", e => {
+    if (gameOver) return;
+    if (e.key === "Enter") {
+      submitGuess();
+    } else if (e.key === "Backspace") {
+      deleteLetter();
+    } else if (/^[a-zA-Z]$/.test(e.key)) {
+      addLetter(e.key.toLowerCase());
+    }
+  });
+
+  startGame();
+</script>
+
+
+
+</body>
+</html>

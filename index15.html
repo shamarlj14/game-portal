@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <meta charset="UTF" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hangman</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      user-select: none;
+    }
+    h1 {
+      margin-bottom: 0.5em;
+    }
+    #word {
+      font-size: 2.5em;
+      letter-spacing: 0.15em;
+      margin: 20px 0;
+    }
+    #letters button {
+      background: #222;
+      color: #eee;
+      border: 1.5px solid #555;
+      margin: 4px;
+      width: 35px;
+      height: 35px;
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #letters button:disabled {
+      background: #555;
+      color: #999;
+      cursor: default;
+    }
+    #scoreboard, #mistakes, #stats {
+      margin-top: 10px;
+      font-size: 1.2em;
+    }
+    #freeLetterBtn {
+      margin-top: 15px;
+      background: #444;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.1em;
+      color: #eee;
+      border-radius: 6px;
+      cursor: pointer;
+      display: none;
+    }
+    #freeLetterBtn:hover {
+      background: #666;
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 1.2em;
+      min-height: 20px;
+    }
+    #resetBtn {
+      margin-top: 30px;
+      background: #222;
+      color: #eee;
+      border: 1.5px solid #555;
+      padding: 8px 18px;
+      font-size: 1.1em;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #resetBtn:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Hangman</h1>
+<div id="word"></div>
+<div id="letters"></div>
+<button id="freeLetterBtn">Reveal a Letter (Free)</button>
+
+<div id="scoreboard">Points: <span id="points">0</span></div>
+<div id="mistakes">Mistakes: <span id="wrong">0</span>/7</div>
+<div id="stats">
+  Letters Guessed: <span id="totalGuesses">0</span><br>
+  Correct %: <span id="accuracy">0</span>%<br>
+  Correct Letters Guessed: <span id="correctCount">0</span>/<span id="wordLength">0</span>
+</div>
+<div id="message"></div>
+
+<button id="resetBtn">Restart Game</button>
+
+<script>
+(() => {
+  const words = [
+    "money", "love", "heart", "miami", "sniper", "happy", "sad", "tiny",
+    "evil", "snowman", "tiger", "mystery", "fortune", "silence", "dragon",
+    "valentine", "romance", "cupid", "crush", "roses", "hug", "kiss", "sweetheart",
+    "chocolate", "bouquet", "adorable", "darling", "affection", "gifts", "loveletter",
+    "devotion", "date", "soulmate", "flirt", "spark", "together", "beloved",
+    "fearless", "joyful", "lonely", "hopeful", "caring", "brave", "angry", "loyal",
+    "broken", "strong", "wild", "shy", "free", "peaceful", "trust",
+    "rainbow", "blizzard", "forest", "sunrise", "storm", "firefly", "crystal", "phoenix",
+    "unicorn", "starlight", "shadow", "glacier", "volcano", "desert", "moonlight",
+    "vibes", "cyber", "pixel", "portal", "neon", "retro", "glitch", "matrix",
+    "midnight", "echo", "rhythm", "galaxy", "nexus", "zenith", "phantom",
+    "mountain", "thunder", "ocean", "island", "breeze", "twilight", "dusk", "meadow",
+    "horizon", "blossom", "petal", "code", "byte", "laser", "loot", "shield", "mod",
+    "server", "boss", "grind", "quest", "dash", "dream", "hope", "fear", "joy", "hate",
+    "envy", "rage", "calm", "shock", "guilt", "bliss", "chill", "vapor", "vinyl", "tape",
+    "aesthetic", "mellow", "nightfall", "cassette", "wizard", "curse", "orb", "spell",
+    "relic", "legend", "dungeon", "spirit", "abyss", "veil", "myth", "sigil", "scroll",
+    "rift", "pulse", "flash", "warp", "buzz", "light", "flare", "nova", "zone", "phase",
+    "drone", "cloud", "grid", "glide", "tempo", "jam", "beat", "loop", "wave", "sound",
+    "harmony", "track", "flow", "groove"
+  ];
+
+  let chosenWord = '';
+  let guessedLetters = new Set();
+  let points = 0;
+  let wrongGuesses = 0;
+  let totalGuesses = 0;
+  let correctGuesses = 0;
+  let freeLettersAvailable = 0;
+  let freeLetterUsed = false;
+  let gameOver = false;
+
+  const wordDiv = document.getElementById('word');
+  const lettersDiv = document.getElementById('letters');
+  const pointsSpan = document.getElementById('points');
+  const wrongSpan = document.getElementById('wrong');
+  const freeLetterBtn = document.getElementById('freeLetterBtn');
+  const messageDiv = document.getElementById('message');
+  const resetBtn = document.getElementById('resetBtn');
+  const totalGuessesSpan = document.getElementById('totalGuesses');
+  const accuracySpan = document.getElementById('accuracy');
+  const correctCountSpan = document.getElementById('correctCount');
+  const wordLengthSpan = document.getElementById('wordLength');
+
+  let correctUniqueLetters = new Set();
+  let uniqueLettersInWord = new Set();
+
+  function pickRandomWord() {
+    const idx = Math.floor(Math.random() * words.length);
+    return words[idx];
+  }
+
+  function updateWordDisplay() {
+    let display = '';
+    for (const ch of chosenWord) {
+      display += guessedLetters.has(ch) ? ch.toUpperCase() + ' ' : '_ ';
+    }
+    wordDiv.textContent = display.trim();
+  }
+
+  function updateLettersButtons() {
+    lettersDiv.innerHTML = '';
+    for (let i = 65; i <= 90; i++) {
+      const letter = String.fromCharCode(i).toLowerCase();
+      const btn = document.createElement('button');
+      btn.textContent = letter.toUpperCase();
+      btn.disabled = guessedLetters.has(letter);
+      btn.addEventListener('click', () => handleGuess(letter, btn));
+      lettersDiv.appendChild(btn);
+    }
+  }
+
+  function handleGuess(letter, btn = null) {
+    if (guessedLetters.has(letter) || gameOver) return;
+    guessedLetters.add(letter);
+    totalGuesses++;
+
+    if (btn) btn.disabled = true;
+    else {
+      lettersDiv.querySelectorAll('button').forEach(button => {
+        if (button.textContent.toLowerCase() === letter) button.disabled = true;
+      });
+    }
+
+    if (chosenWord.includes(letter)) {
+      correctGuesses++;
+      if (!correctUniqueLetters.has(letter)) {
+        correctUniqueLetters.add(letter);
+        correctCountSpan.textContent = correctUniqueLetters.size;
+      }
+      updateWordDisplay();
+      addPoint();
+      checkWin();
+      messageDiv.textContent = `✔️ "${letter.toUpperCase()}" is in the word!`;
+    } else {
+      wrongGuesses++;
+      wrongSpan.textContent = wrongGuesses;
+      messageDiv.textContent = `❌ "${letter.toUpperCase()}" is NOT in the word.`;
+      checkLose();
+    }
+
+    updateStats();
+  }
+
+  function addPoint() {
+    points++;
+    pointsSpan.textContent = points;
+    if (points === 3 && freeLettersAvailable === 0) {
+      freeLettersAvailable = 1;
+      freeLetterUsed = false;
+      freeLetterBtn.style.display = 'inline-block';
+      messageDiv.textContent = '🎁 You earned a free letter!';
+    }
+  }
+
+  function checkWin() {
+    const allGuessed = [...chosenWord].every(ch => guessedLetters.has(ch));
+    if (allGuessed) {
+      messageDiv.textContent = '🎉 You guessed the word! You win!';
+      endGame();
+    }
+  }
+
+  function checkLose() {
+    if (wrongGuesses >= 7) {
+      messageDiv.textContent = `💀 Game Over! The word was: "${chosenWord.toUpperCase()}"`;
+      endGame();
+    }
+  }
+
+  function endGame() {
+    lettersDiv.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    freeLetterBtn.style.display = 'none';
+    gameOver = true;
+    document.removeEventListener('keydown', onKeyDown);
+  }
+
+  function revealFreeLetter() {
+    if (freeLettersAvailable === 0 || freeLetterUsed || gameOver) return;
+    const notGuessed = [...chosenWord].filter(ch => !guessedLetters.has(ch));
+    if (notGuessed.length === 0) {
+      messageDiv.textContent = '✅ All letters already revealed!';
+      return;
+    }
+    const letterToReveal = notGuessed[Math.floor(Math.random() * notGuessed.length)];
+    guessedLetters.add(letterToReveal);
+    correctGuesses++;
+    if (!correctUniqueLetters.has(letterToReveal)) {
+      correctUniqueLetters.add(letterToReveal);
+      correctCountSpan.textContent = correctUniqueLetters.size;
+    }
+    totalGuesses++;
+    updateWordDisplay();
+    updateLettersButtons();
+    freeLetterUsed = true;
+    freeLetterBtn.style.display = 'none';
+    messageDiv.textContent = `🆓 Free letter: "${letterToReveal.toUpperCase()}"`;
+    checkWin();
+    updateStats();
+  }
+
+  function updateStats() {
+    totalGuessesSpan.textContent = totalGuesses;
+    const percent = totalGuesses === 0 ? 0 : Math.round((correctGuesses / totalGuesses) * 100);
+    accuracySpan.textContent = percent;
+  }
+
+  function resetGame() {
+    chosenWord = pickRandomWord();
+    guessedLetters.clear();
+    correctUniqueLetters.clear();
+    uniqueLettersInWord = new Set([...chosenWord]);
+    wordLengthSpan.textContent = uniqueLettersInWord.size;
+    correctCountSpan.textContent = 0;
+    points = 0;
+    wrongGuesses = 0;
+    totalGuesses = 0;
+    correctGuesses = 0;
+    freeLettersAvailable = 0;
+    freeLetterUsed = false;
+    gameOver = false;
+    pointsSpan.textContent = points;
+    wrongSpan.textContent = wrongGuesses;
+    totalGuessesSpan.textContent = totalGuesses;
+    accuracySpan.textContent = 0;
+    messageDiv.textContent = '';
+    freeLetterBtn.style.display = 'none';
+    updateWordDisplay();
+    updateLettersButtons();
+    document.addEventListener('keydown', onKeyDown);
+  }
+
+  function onKeyDown(e) {
+    const key = e.key.toLowerCase();
+    if (key.length === 1 && key >= 'a' && key <= 'z') {
+      handleGuess(key, null);
+    }
+  }
+
+  freeLetterBtn.addEventListener('click', revealFreeLetter);
+  resetBtn.addEventListener('click', resetGame);
+
+  resetGame();
+})();
+</script>
+
+</body>
+</html>

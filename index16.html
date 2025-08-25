@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Color Chain Reaction</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #0ff;
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      user-select: none;
+    }
+
+    #header {
+      width: 100%;
+      padding: 15px;
+      text-align: center;
+      background: #111;
+      border-bottom: 2px solid #0ff;
+    }
+
+    #score {
+      font-size: 20px;
+    }
+
+    #highScore {
+      font-size: 16px;
+      margin-top: 4px;
+      color: #fff;
+    }
+
+    #message {
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .canvas-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    canvas {
+      background: #111;
+      border: 3px solid #0ff;
+      max-width: 90vmin;
+      max-height: 90vmin;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header">
+    <div id="score">Chain length: 1</div>
+    <div id="highScore">High score: 1</div>
+    <div id="message">Click anywhere to add dots. But not too close to an existing one!</div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="game" width="600" height="600"></canvas>
+  </div>
+
+<script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('highScore');
+  const messageEl = document.getElementById('message');
+
+  const WIDTH = canvas.width;
+  const HEIGHT = canvas.height;
+
+  // Initialize highScore to 0 every time (no persistence)
+  let highScore = 0;
+  highScoreEl.textContent = `High score: ${highScore}`;
+
+  // Start with first dot in the center
+  let chain = [{
+    x: WIDTH / 2,
+    y: HEIGHT / 2,
+    color: { r: 255, g: 0, b: 0 },
+  }];
+
+  function rgbToHex(c) {
+    const r = c.r.toString(16).padStart(2, '0');
+    const g = c.g.toString(16).padStart(2, '0');
+    const b = c.b.toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  }
+
+  function mixColors(c1, c2) {
+    return {
+      r: Math.floor((c1.r + c2.r) / 2),
+      g: Math.floor((c1.g + c2.g) / 2),
+      b: Math.floor((c1.b + c2.b) / 2)
+    };
+  }
+
+  function randomColor() {
+    const colors = [
+      { r: 255, g: 0, b: 0 },
+      { r: 0, g: 255, b: 0 },
+      { r: 0, g: 0, b: 255 },
+      { r: 255, g: 255, b: 0 },
+      { r: 255, g: 0, b: 255 },
+      { r: 0, g: 255, b: 255 },
+      { r: 255, g: 165, b: 0 },
+      { r: 128, g: 0, b: 128 },
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  function positionUsed(x, y) {
+    for (let dot of chain) {
+      let dx = dot.x - x;
+      let dy = dot.y - y;
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function updateScore() {
+    scoreEl.textContent = `Chain length: ${chain.length}`;
+    if (chain.length > highScore) {
+      highScore = chain.length;
+      highScoreEl.textContent = `High score: ${highScore}`;
+    }
+  }
+
+  function resetChain(resetHighScore = false) {
+    chain = [{
+      x: WIDTH / 2,
+      y: HEIGHT / 2,
+      color: { r: 255, g: 0, b: 0 },
+    }];
+    scoreEl.textContent = `Chain length: 1`;
+    if (resetHighScore) {
+      highScore = 0;
+      highScoreEl.textContent = `High score: 0`;
+    }
+    draw();
+  }
+
+  // Clicking on canvas adds dots
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    if (positionUsed(clickX, clickY)) {
+      messageEl.textContent = `⚠️ Too close! Chain ended at length ${chain.length}. Starting new chain.`;
+      resetChain();
+      return;
+    }
+
+    const lastDot = chain[chain.length - 1];
+    const randCol = randomColor();
+    const newColor = mixColors(lastDot.color, randCol);
+
+    chain.push({ x: clickX, y: clickY, color: newColor });
+    messageEl.textContent = "✅ Dot added!";
+    updateScore();
+    draw();
+  });
+
+  // Clicking outside canvas resets chain and high score
+  document.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const insideCanvas =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom;
+
+    if (!insideCanvas) {
+      messageEl.textContent = `❌ Outside canvas! High score and chain reset.`;
+      resetChain(true);
+    }
+  });
+
+  function draw() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    // Draw lines
+    for (let i = 1; i < chain.length; i++) {
+      const a = chain[i - 1];
+      const b = chain[i];
+      ctx.strokeStyle = rgbToHex(b.color);
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+
+    // Draw dots
+    for (let dot of chain) {
+      ctx.fillStyle = rgbToHex(dot.color);
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, 12, 0, Math.PI * 2);
+      ctx.shadowColor = `${dot.color.r},${dot.color.g},${dot.color.b}`;
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // Initial draw and score update
+  draw();
+  updateScore();
+</script>
+
+</body>
+</html>

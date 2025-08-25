@@ -1,0 +1,476 @@
+d<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>2-Player Math Duel</title>
+<link rel="stylesheet" href="style.css" />
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+</head>
+<body>
+  <div id="setup">
+    <h2>Enter Player Names and Favorite Colors</h2>
+    <div>
+      <label>Player 1 Name: <input type="text" id="p1Name" placeholder="Player 1" /></label>
+      <label>Favorite Color: <input type="color" id="p1Color" value="#00ffff" /></label>
+    </div>
+    <div>
+      <label>Player 2 Name: <input type="text" id="p2Name" placeholder="Player 2" /></label>
+      <label>Favorite Color: <input type="color" id="p2Color" value="#ff69b4" /></label>
+    </div>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="vsContainer">
+      <span id="vLetter">v</span><span id="sLetter">s</span>
+    </div>
+
+    <div id="status"></div>
+
+    <div id="chat"></div>
+
+    <div id="problemArea">
+      <div id="problemText"></div>
+      <input type="number" id="answerInput" placeholder="Your answer" />
+      <button id="submitAnswerBtn">Submit Answer</button>
+    </div>
+
+    <div id="scoreBoard">
+      <div id="p1Score"></div>
+      <div id="p2Score"></div>
+    </div>
+
+    <button id="skipBtn">Skip Opponent's Turn (Cost: 10 coins)</button>
+  </div>
+
+<script src="script.js"></script>
+</body>
+    <style>
+body, html {
+  margin: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  transition: background-color 0.5s ease;
+}
+
+#setup {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 2px solid aqua;
+  border-radius: 10px;
+  background: #111;
+  color: white;
+}
+
+#setup label {
+  display: block;
+  margin: 10px 0;
+}
+
+#setup input[type="text"], #setup input[type="color"] {
+  margin-left: 10px;
+  padding: 5px;
+  border-radius: 4px;
+  border: none;
+}
+
+#startBtn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background: aqua;
+  border: none;
+  border-radius: 6px;
+}
+
+#game {
+  max-width: 600px;
+  margin: 20px auto;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+#vsContainer {
+  font-size: 60px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  user-select: none;
+}
+
+#vLetter {
+  color: aqua;
+}
+
+#sLetter {
+  color: pink;
+}
+
+#status {
+  font-size: 20px;
+  margin-bottom: 15px;
+  min-height: 30px;
+}
+
+#chat {
+  height: 200px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.3);
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.chat-message {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.chat-player1 {
+  color: aqua;
+}
+
+.chat-player2 {
+  color: pink;
+}
+
+#problemArea {
+  margin-bottom: 20px;
+}
+
+#problemText {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+#answerInput {
+  padding: 8px;
+  font-size: 16px;
+  width: 150px;
+  margin-right: 10px;
+  border-radius: 6px;
+  border: none;
+}
+
+#submitAnswerBtn, #skipBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: none;
+  background: aqua;
+  color: black;
+  margin-top: 10px;
+}
+
+#skipBtn {
+  background: pink;
+  margin-top: 0;
+}
+</style>
+    <script>
+        const setupDiv = document.getElementById("setup");
+const gameDiv = document.getElementById("game");
+
+const p1NameInput = document.getElementById("p1Name");
+const p1ColorInput = document.getElementById("p1Color");
+const p2NameInput = document.getElementById("p2Name");
+const p2ColorInput = document.getElementById("p2Color");
+const startBtn = document.getElementById("startBtn");
+
+const status = document.getElementById("status");
+const chat = document.getElementById("chat");
+const problemText = document.getElementById("problemText");
+const answerInput = document.getElementById("answerInput");
+const submitAnswerBtn = document.getElementById("submitAnswerBtn");
+const skipBtn = document.getElementById("skipBtn");
+
+const p1ScoreDiv = document.getElementById("p1Score");
+const p2ScoreDiv = document.getElementById("p2Score");
+
+const body = document.body;
+
+let players = [];
+let currentPlayerIndex = 0;
+let problem = null;
+
+// === CUSTOM PROBLEMS: EDIT THIS ARRAY TO ADD YOUR MATH PROBLEMS ===
+const customProblems = [
+  { text: "12 × 8 = ?", answer: 96 },
+  { text: "45 ÷ 9 = ?", answer: 5 },
+  { text: "17 + 26 = ?", answer: 43 },
+  { text: "100 - 37 = ?", answer: 63 },
+  { text: "9² = ?", answer: 81 },
+  { text: "√144 = ?", answer: 12 },
+  { text: "15 × 7 = ?", answer: 105 },
+  { text: "81 ÷ 3 = ?", answer: 27 },
+  { text: "125 - 48 = ?", answer: 77 },
+  { text: "8³ = ?", answer: 512 },
+  { text: "56 + 87 = ?", answer: 143 },
+  { text: "45 x 44 = ?", answer: 143 },
+  { text: "46 x 27 = ?", answer: 1242 },
+  { text: "58 x 20 = ?", answer: 1160 },
+  { text: "69 x 14 = ?", answer: 966 },
+  { text: "77 x 13 = ?", answer: 1001 },
+  { text: "84 x 17 = ?", answer: 1428 },
+  { text: "92 x 15 = ?", answer: 1380 },
+  { text: "99 x 12 = ?", answer: 1188 },
+  { text: "22 x 44 = ?", answer: 968 },
+  { text: "35 x 55 = ?", answer: 1925 },
+    { text: "144 ÷ 12 = ?", answer: 12 },
+  { text: "225 ÷ 15 = ?", answer: 15 },
+  { text: "180 ÷ 9 = ?", answer: 20 },
+  { text: "196 ÷ 14 = ?", answer: 14 },
+  { text: "132 ÷ 11 = ?", answer: 12 },
+  { text: "288 ÷ 16 = ?", answer: 18 },
+  { text: "400 ÷ 20 = ?", answer: 20 },
+  { text: "525 ÷ 25 = ?", answer: 21 },
+  { text: "360 ÷ 18 = ?", answer: 20 },
+  { text: "252 ÷ 14 = ?", answer: 18 },
+  { text: "420 ÷ 21 = ?", answer: 20 },
+  { text: "490 ÷ 35 = ?", answer: 14 },
+  { text: "315 ÷ 9 = ?", answer: 35 },
+  { text: "225 ÷ 25 = ?", answer: 9 },
+  { text: "180 ÷ 20 = ?", answer: 9 },
+  { text: "396 ÷ 18 = ?", answer: 22 },
+  { text: "144 ÷ 16 = ?", answer: 9 },
+  { text: "550 ÷ 25 = ?", answer: 22 },
+  { text: "600 ÷ 24 = ?", answer: 25 },
+  { text: "270 ÷ 15 = ?", answer: 18 },
+  { text: "384 ÷ 16 = ?", answer: 24 },
+  { text: "720 ÷ 30 = ?", answer: 24 },
+  { text: "480 ÷ 12 = ?", answer: 40 },
+  { text: "625 ÷ 25 = ?", answer: 25 },
+  { text: "990 ÷ 33 = ?", answer: 30 },
+  { text: "350 ÷ 14 = ?", answer: 25 },
+  { text: "420 ÷ 20 = ?", answer: 21 },
+  { text: "540 ÷ 18 = ?", answer: 30 },
+  { text: "280 ÷ 14 = ?", answer: 20 },
+  { text: "360 ÷ 24 = ?", answer: 15 },
+  { text: "525 ÷ 15 = ?", answer: 35 },
+  { text: "432 ÷ 12 = ?", answer: 36 },
+  { text: "625 ÷ 25 = ?", answer: 25 },
+  { text: "480 ÷ 30 = ?", answer: 16 },
+  { text: "330 ÷ 11 = ?", answer: 30 },
+  { text: "240 ÷ 15 = ?", answer: 16 },
+  { text: "528 ÷ 22 = ?", answer: 24 },
+  { text: "360 ÷ 15 = ?", answer: 24 },
+  { text: "810 ÷ 27 = ?", answer: 30 },
+  { text: "560 ÷ 20 = ?", answer: 28 },
+  { text: "900 ÷ 30 = ?", answer: 30 },
+  { text: "315 ÷ 7 = ?", answer: 45 },
+  { text: "440 ÷ 20 = ?", answer: 22 },
+  { text: "384 ÷ 12 = ?", answer: 32 },
+  { text: "600 ÷ 15 = ?", answer: 40 },
+  { text: "540 ÷ 9 = ?", answer: 60 },
+  { text: "180 ÷ 6 = ?", answer: 30 },
+  { text: "275 ÷ 11 = ?", answer: 25 },
+  { text: "198 ÷ 9 = ?", answer: 22 },
+  { text: "360 ÷ 18 = ?", answer: 20 },
+  { text: "450 ÷ 25 = ?", answer: 18 },
+  { text: "280 ÷ 10 = ?", answer: 28 },
+  { text: "392 ÷ 14 = ?", answer: 28 },
+  { text: "630 ÷ 18 = ?", answer: 35 },
+  { text: "440 ÷ 22 = ?", answer: 20 },
+  { text: "900 ÷ 25 = ?", answer: 36 },
+    { text: "2^5 = ?", answer: 32 },
+  { text: "3^4 = ?", answer: 81 },
+  { text: "5^3 = ?", answer: 125 },
+  { text: "7^2 = ?", answer: 49 },
+  { text: "10^3 = ?", answer: 1000 },
+  { text: "4^4 = ?", answer: 256 },
+  { text: "6^3 = ?", answer: 216 },
+  { text: "9^2 = ?", answer: 81 },
+  { text: "8^3 = ?", answer: 512 },
+  { text: "12^2 = ?", answer: 144 },
+
+  // Square roots
+  { text: "√49 = ?", answer: 7 },
+  { text: "√81 = ?", answer: 9 },
+  { text: "√100 = ?", answer: 10 },
+  { text: "√144 = ?", answer: 12 },
+  { text: "√225 = ?", answer: 15 },
+  { text: "√256 = ?", answer: 16 },
+  { text: "√121 = ?", answer: 11 },
+  { text: "√169 = ?", answer: 13 },
+  { text: "√196 = ?", answer: 14 },
+  { text: "√400 = ?", answer: 20 },
+
+  // Cubes and cube roots
+  { text: "3^3 = ?", answer: 27 },
+  { text: "4^3 = ?", answer: 64 },
+  { text: "5^3 = ?", answer: 125 },
+  { text: "∛27 = ?", answer: 3 },
+  { text: "∛64 = ?", answer: 4 },
+  { text: "∛125 = ?", answer: 5 },
+  { text: "2^4 = ?", answer: 16 },
+  { text: "6^2 = ?", answer: 36 },
+  { text: "8^2 = ?", answer: 64 },
+  { text: "7^3 = ?", answer: 343 },
+
+  // Multiplication (some examples)
+  { text: "23 x 17 = ?", answer: 391 },
+  { text: "45 x 19 = ?", answer: 855 },
+  { text: "67 x 8 = ?", answer: 536 },
+
+  // Division (some examples)
+  { text: "144 ÷ 12 = ?", answer: 12 },
+  { text: "225 ÷ 15 = ?", answer: 15 },
+  { text: "360 ÷ 18 = ?", answer: 20 },
+
+  // Powers with higher exponents
+  { text: "2^8 = ?", answer: 256 },
+  { text: "3^5 = ?", answer: 243 },
+  { text: "5^4 = ?", answer: 625 },
+
+  // Square roots (harder)
+  { text: "√625 = ?", answer: 25 },
+  { text: "√1024 = ?", answer: 32 },
+
+  // Cube roots (harder)
+  { text: "∛216 = ?", answer: 6 },
+  { text: "∛343 = ?", answer: 7 },
+
+  // Mixed powers and roots
+  { text: "√(16^2) = ?", answer: 16 },
+  { text: "(√81)^3 = ?", answer: 729 },
+  { text: "∛(27^2) = ?", answer: 9 },
+
+  // Some tricky ones
+  { text: "2^(3+2) = ?", answer: 32 },
+  { text: "(5^2) ÷ 5 = ?", answer: 5 },
+  { text: "√(49 x 4) = ?", answer: 14 },
+
+  // More powers
+  { text: "11^2 = ?", answer: 121 },
+  { text: "13^2 = ?", answer: 169 },
+  { text: "14^2 = ?", answer: 196 },
+
+  // More square roots
+  { text: "√169 = ?", answer: 13 },
+  { text: "√225 = ?", answer: 15 },
+
+  // More cubes
+  { text: "9^3 = ?", answer: 729 },
+  { text: "10^3 = ?", answer: 1000 }
+];
+
+// Pick a random problem from the customProblems array
+function generateProblem() {
+  const index = Math.floor(Math.random() * customProblems.length);
+  return customProblems[index];
+}
+
+function updateScores() {
+  p1ScoreDiv.textContent = `${players[0].name}: ${players[0].score} points, ${players[0].coins} coins`;
+  p2ScoreDiv.textContent = `${players[1].name}: ${players[1].score} points, ${players[1].coins} coins`;
+}
+
+function addChatMessage(playerIndex, message) {
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("chat-message");
+  msgDiv.classList.add(playerIndex === 0 ? "chat-player1" : "chat-player2");
+  msgDiv.textContent = `${players[playerIndex].name}: ${message}`;
+  chat.appendChild(msgDiv);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function switchTurn() {
+  currentPlayerIndex = 1 - currentPlayerIndex;
+  body.style.backgroundColor = players[currentPlayerIndex].color;
+  status.textContent = `It's ${players[currentPlayerIndex].name}'s turn to solve the problem!`;
+
+  answerInput.value = "";
+  answerInput.focus();
+
+  problem = generateProblem();
+
+  addChatMessage(1 - currentPlayerIndex, `${players[1 - currentPlayerIndex].name} asks: ${problem.text}`);
+  problemText.textContent = problem.text;
+}
+
+function startGame() {
+  players = [
+    { name: p1NameInput.value.trim() || "Player 1", color: p1ColorInput.value, score: 0, coins: 0 },
+    { name: p2NameInput.value.trim() || "Player 2", color: p2ColorInput.value, score: 0, coins: 0 }
+  ];
+
+  setupDiv.style.display = "none";
+  gameDiv.style.display = "block";
+
+  body.style.backgroundColor = players[0].color;
+
+  updateScores();
+  currentPlayerIndex = 0;
+  problem = generateProblem();
+
+  addChatMessage(1, `${players[1].name} asks: ${problem.text}`);
+  problemText.textContent = problem.text;
+
+  status.textContent = `It's ${players[0].name}'s turn to solve the problem!`;
+  answerInput.focus();
+}
+
+function submitAnswer() {
+  const answer = parseInt(answerInput.value);
+  if (isNaN(answer)) {
+    alert("Please enter a valid number.");
+    return;
+  }
+
+  if (answer === problem.answer) {
+    addChatMessage(currentPlayerIndex, `answered correctly! +1 point & +1 coin`);
+    players[currentPlayerIndex].score++;
+    players[currentPlayerIndex].coins++;
+  } else {
+    addChatMessage(currentPlayerIndex, `answered incorrectly. The correct answer was ${problem.answer}`);
+  }
+
+  updateScores();
+  switchTurn();
+}
+
+function skipTurn() {
+  if (players[currentPlayerIndex].coins < 10) {
+    alert("Not enough coins to skip opponent's turn!");
+    return;
+  }
+  players[currentPlayerIndex].coins -= 10;
+  updateScores();
+
+  addChatMessage(currentPlayerIndex, `used 10 coins to skip ${players[1 - currentPlayerIndex].name}'s turn!`);
+
+  // Skip opponent's turn by giving current player another turn
+  // currentPlayerIndex stays the same
+
+  body.style.backgroundColor = players[currentPlayerIndex].color;
+  status.textContent = `${players[currentPlayerIndex].name} gets another turn!`;
+
+  problem = generateProblem();
+  addChatMessage(1 - currentPlayerIndex, `${players[1 - currentPlayerIndex].name} asks: ${problem.text}`);
+  problemText.textContent = problem.text;
+
+  answerInput.value = "";
+  answerInput.focus();
+}
+
+startBtn.addEventListener("click", startGame);
+submitAnswerBtn.addEventListener("click", submitAnswer);
+skipBtn.addEventListener("click", skipTurn);
+
+answerInput.addEventListener("keyup", e => {
+  if (e.key === "Enter") {
+    submitAnswer();
+  }
+});
+    </script>
+        
+</html>

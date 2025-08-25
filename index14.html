@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Watch Over Us</title>
+<style>
+  body {
+    background: #000000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+    color: #222;
+  }
+  h1 {
+    text-align: center;
+    color: #fafdff;
+  }
+  #story {
+    background: #ecf0f1;
+    border-radius: 8px;
+    padding: 15px;
+    height: 280px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    font-size: 1.05rem;
+  }
+  #stats {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-around;
+    background: #d6e3f0;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+  }
+  #stats span {
+    color: #34495e;
+  }
+  button.action {
+    background: #3498db;
+    border: none;
+    color: white;
+    margin: 6px 10px 6px 0;
+    padding: 14px 22px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  button.action:hover:not(:disabled) {
+    background: #2980b9;
+  }
+  button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+  }
+  #restartBtn {
+    margin-top: 25px;
+    background: #e74c3c;
+    padding: 14px 32px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 700;
+    font-size: 1.1rem;
+    user-select: none;
+  }
+  #restartBtn:hover {
+    background: #c0392b;
+  }
+  #actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #scoreboard {
+    margin-top: 30px;
+    background: #ecf0f1;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #scoreboard h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2c3e50;
+  }
+  #scoreboard ol {
+    list-style: none;
+    padding-left: 0;
+  }
+  #scoreboard li {
+    font-size: 1.1rem;
+    margin: 6px 0;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .trophy {
+    font-size: 1.5rem;
+    margin-right: 10px;
+  }
+
+    #resetScoreboardBtn {
+  margin: 15px auto 0;
+  display: block;
+  background: #7f8c8d;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+#resetScoreboardBtn:hover {
+  background: #636e72;
+}
+
+</style>
+</head>
+<body>
+
+<h1>Watch Over Us</h1>
+<div id="stats">
+  <span id="dayStat">Day: 1</span>
+  <span id="peopleStat">People: 25</span>
+  <span id="resourcesStat">Resources: 50</span>
+  <span id="happinessStat">Happiness: 15</span>
+  <span id="safetyStat">Safety: 15</span>
+</div>
+<div id="story"></div>
+
+<div id="actions">
+  <button class="action" data-action="buildWell">Build a Well (-3 Resources)</button>
+  <button class="action" data-action="hostFestival">Host Festival (-5 Resources)</button>
+  <button class="action" data-action="enforceLaw">Enforce Law (-2 Resources)</button>
+  <button class="action" data-action="recruitGuards">Recruit Guards (-4 Resources)</button>
+  <button class="action" data-action="expandHousing">Expand Housing (-6 Resources)</button>
+  <button class="action" data-action="trainFarmers">Train Farmers (-3 Resources)</button>
+  <button class="action" data-action="researchMedicine">Research Medicine (-5 Resources)</button>
+  <button class="action" data-action="buildMarket">Build Market (-4 Resources)</button>
+  <button class="action" data-action="restDay">Rest Day (No Cost)</button>
+  <button class="action" data-action="lookForSurvivors">Look for Survivors (-4 Resources)</button>
+  <button class="action" data-action="scavengeRuins">Scavenge Ruins (-2 Resources)</button>
+  <button class="action" data-action="diplomaticVisit">Diplomatic Visit (-10Resources)</button>
+  <button class="action" data-action="fortifyWalls">Fortify Walls (-5 Resources)</button>
+  <button class="action" data-action="harvestForest">Harvest Forest (Free)</button>
+
+  
+<button id="resetScoreboardBtn">Reset Scoreboard</button>
+
+</div>
+
+<button id="restartBtn">Restart Game</button>
+
+<div id="scoreboard">
+  <h2>Survival Scoreboard</h2>
+  <ol id="scoreList">
+    <!-- top scores go here -->
+  </ol>
+</div>
+
+<script>
+(() => {
+  const storyEl = document.getElementById('story');
+  const stats = {
+    day: document.getElementById('dayStat'),
+    people: document.getElementById('peopleStat'),
+    resources: document.getElementById('resourcesStat'),
+    happiness: document.getElementById('happinessStat'),
+    safety: document.getElementById('safetyStat')
+  };
+  const actionsEl = document.getElementById('actions');
+  const restartBtn = document.getElementById('restartBtn');
+  const scoreListEl = document.getElementById('scoreList');
+
+  let state = {
+    day: 1,
+    people: 25,
+    resources: 50,
+    happiness: 15,
+    safety: 15,
+    gameOver: false,
+  };
+
+  const maxDays = 1000;
+
+  // Load scores from localStorage or empty array
+  let scores = JSON.parse(localStorage.getItem('survivalScores')) || [];
+
+  function updateStats() {
+    stats.day.textContent = `Day: ${state.day}`;
+    stats.people.textContent = `People: ${state.people}`;
+    stats.resources.textContent = `Resources: ${state.resources}`;
+    stats.happiness.textContent = `Happiness: ${state.happiness}`;
+    stats.safety.textContent = `Safety: ${state.safety}`;
+  }
+
+  function appendStory(text) {
+    storyEl.textContent += text + "\n\n";
+    storyEl.scrollTop = storyEl.scrollHeight;
+  }
+
+  // New complex random events
+  function randomEvent() {
+    const events = [
+      () => {
+        state.happiness -= 3;
+        appendStory("A drought hits the region. Happiness suffers.");
+      },
+      () => {
+        state.safety -= 4;
+        appendStory("Bandits raid the outskirts! Safety dangerously drops.");
+      },
+      () => {
+        const lost = Math.min(3, state.resources);
+        state.resources -= lost;
+        appendStory(`A storm ruins some supplies, losing ${lost} resources.`);
+      },
+      () => {
+        state.people += 2;
+        state.resources -= 2;
+        appendStory("New settlers arrive, but they consume resources.");
+      },
+      () => {
+        state.happiness += 3;
+        appendStory("A traveling troupe delights the townsfolk, boosting happiness.");
+      },
+      () => {
+        state.safety += 3;
+        appendStory("Town guards caught thieves. Safety improves.");
+      },
+      () => {
+        if(state.people > 10) {
+          state.people -= 5;
+          state.happiness -= 3;
+          appendStory("A sickness spreads! Many fall ill and leave.");
+        }
+      },
+      () => {
+        state.resources += 4;
+        appendStory("A merchant caravan arrives, increasing resources.");
+      },
+      () => {
+        state.happiness -= 2;
+        appendStory("Harsh weather makes life difficult. Happiness falls.");
+      },
+      () => {
+        if(state.safety < 5) {
+          state.people -= 3;
+          appendStory("Due to low safety, some people flee the town.");
+        }
+      }
+    ];
+    if(Math.random() < 0.7) {
+      const e = events[Math.floor(Math.random() * events.length)];
+      e();
+    } else {
+      appendStory("The day passes quietly, no notable events.");
+    }
+  }
+
+  function checkGameOver() {
+    if(state.resources <= 0) {
+      appendStory("You ran out of resources. The town collapses.");
+      endGame();
+    } else if(state.happiness <= 0) {
+      appendStory("People are too unhappy and leave the town.");
+      endGame();
+    } else if(state.safety <= 0) {
+      appendStory("The town is overrun by bandits. Game over.");
+      endGame();
+    } else if(state.people <= 0) {
+      appendStory("Nobody is left in the town. You lose.");
+      endGame();
+    } else if(state.day > maxDays) {
+      appendStory("🎉 Congratulations! You survived and thrived for 50 days!");
+      endGame(true);
+    }
+  }function randomEvent() {
+  // Regular events (70% chance)
+  const baseEvents = [
+    () => {
+      state.happiness -= 3;
+      appendStory("A drought hits the region. Happiness suffers.");
+    },
+    () => {
+      state.safety -= 4;
+      appendStory("Bandits raid the outskirts! Safety dangerously drops.");
+    },
+    () => {
+      const lost = Math.min(3, state.resources);
+      state.resources -= lost;
+      appendStory(`A storm ruins some supplies, losing ${lost} resources.`);
+    },
+    () => {
+      state.people += 2;
+      state.resources -= 2;
+      appendStory("New settlers arrive, but they consume resources.");
+    },
+    () => {
+      state.happiness += 3;
+      appendStory("A traveling troupe delights the townsfolk, boosting happiness.");
+    },
+    () => {
+      state.safety += 3;
+      appendStory("Town guards caught thieves. Safety improves.");
+    },
+    () => {
+      if(state.people > 10) {
+        state.people -= 5;
+        state.happiness -= 3;
+        appendStory("A sickness spreads! Many fall ill and leave.");
+      }
+    },
+    () => {
+      state.resources += 4;
+      appendStory("A merchant caravan arrives, increasing resources.");
+    },
+    () => {
+      state.happiness -= 2;
+      appendStory("Harsh weather makes life difficult. Happiness falls.");
+    },
+    () => {
+      if(state.safety < 5) {
+        state.people -= 3;
+        appendStory("Due to low safety, some people flee the town.");
+      }
+    }
+  ];
+
+  const rand = Math.random();
+
+  // 1/15 = 0.0667 chance
+  if (rand < 0.0667) {
+    // 👶 Town Celebrates Birth
+    state.people += 1;
+    state.happiness += 2;
+    appendStory("A baby is born! The town celebrates this joyful moment.");
+  } else if (rand < 0.1334) {
+    // 🌧️ Rainfall Blessing
+    if (Math.random() < 0.5) {
+      state.resources += 2;
+      appendStory("Gentle rains improve harvests. Resources increase.");
+    } else {
+      state.happiness += 2;
+      appendStory("Cool rain brings peace. Happiness improves.");
+    }
+  } else if (rand < 0.85) {
+    // 70% chance for regular random events
+    const e = baseEvents[Math.floor(Math.random() * baseEvents.length)];
+    e();
+  } else {
+    // 15% chance for nothing to happen
+    appendStory("The day passes quietly, no notable events.");
+  }
+}
+
+
+  function endGame(won = false) {
+    state.gameOver = true;
+    actionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+
+    // Prompt for player name
+    let name = prompt("Game Over! Enter your name for the scoreboard:", "Player");
+    if(!name) name = "Anonymous";
+
+    // Save score (days survived)
+    scores.push({ name, days: state.day - (won ? 0 : 1) }); // if won on day 21, days=20
+    // Sort descending by days survived
+    scores.sort((a,b) => b.days - a.days);
+    // Keep top 10
+    scores = scores.slice(0, 10);
+    localStorage.setItem('survivalScores', JSON.stringify(scores));
+
+    renderScoreboard();
+  }
+
+  function renderScoreboard() {
+    scoreListEl.innerHTML = '';
+    const trophies = ['🥇', '🥈', '🥉'];
+    for(let i = 0; i < scores.length; i++) {
+      const score = scores[i];
+      const trophy = trophies[i] || '';
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="trophy">${trophy}</span> ${score.name} - Survived ${score.days} day${score.days !== 1 ? 's' : ''}`;
+      scoreListEl.appendChild(li);
+    }
+  }
+
+  function performAction(action) {
+    if(state.gameOver) return;
+    appendStory(`Day ${state.day}: You chose to ${actionDescriptions[action]}.`);
+
+    switch(action) {
+      case "buildWell":
+        if(state.resources < 3) {
+          appendStory("Not enough resources to build a well.");
+          return;
+        }
+        state.resources -= 3;
+        state.happiness += 2;
+        state.safety += 2;
+        break;
+
+      case "hostFestival":
+        if(state.resources < 5) {
+          appendStory("Not enough resources to host a festival.");
+          return;
+        }
+        state.resources -= 5;
+        state.happiness += 5;
+        state.safety -= 2;
+        break;
+
+      case "enforceLaw":
+        if(state.resources < 2) {
+          appendStory("Not enough resources to enforce law.");
+          return;
+        }
+        state.resources -= 2;
+        state.safety += 4;
+        state.happiness -= 3;
+        break;
+
+      case "recruitGuards":
+        if(state.resources < 4) {
+          appendStory("Not enough resources to recruit guards.");
+          return;
+        }
+        state.resources -= 4;
+        state.safety += 6;
+        state.people -= 1;
+        break;
+
+      case "expandHousing":
+        if(state.resources < 6) {
+          appendStory("Not enough resources to expand housing.");
+          return;
+        }
+        state.resources -= 6;
+        state.people += 4;
+        state.happiness += 1;
+        break;
+
+      case "trainFarmers":
+        if(state.resources < 3) {
+          appendStory("Not enough resources to train farmers.");
+          return;
+        }
+        state.resources -= 3;
+        state.resources += 5; // net gain after training
+        state.people += 1;
+        break;
+
+      case "researchMedicine":
+        if(state.resources < 5) {
+          appendStory("Not enough resources to research medicine.");
+          return;
+        }
+        state.resources -= 5;
+        state.happiness += 3;
+        state.people += 2;
+        break;
+
+      case "buildMarket":
+        if(state.resources < 4) {
+          appendStory("Not enough resources to build a market.");
+          return;
+        }
+        state.resources -= 4;
+        state.resources += 3; // better resource flow after market
+        state.happiness += 2;
+        break;
+
+      case "restDay":
+        appendStory("You chose to rest. No changes today.");
+        break;
+
+      case "lookForSurvivors":
+        if(state.resources < 4) {
+          appendStory("Not enough resources to look for survivors.");
+          return;
+        }
+        state.resources -= 4;
+        const found = Math.floor(Math.random() * 10) + 1;
+        state.people += found;
+        appendStory(`You searched and found ${found} survivor${found > 1 ? 's' : ''}!`);
+        break;
+
+      case "scavengeRuins":
+        if(state.resources < 2) {
+          appendStory("Not enough resources to scavenge the ruins.");
+          return;
+        }
+        state.resources -= 2;
+        if (Math.random() < 0.7) {
+          const gained = Math.floor(Math.random() * 6) + 1;
+          state.resources += gained;
+          appendStory(`You scavenge old ruins and recover ${gained} resources.`);
+        } else {
+          const lost = Math.min(2, state.people);
+          state.people -= lost;
+          appendStory(`A structure collapses while scavenging. You lose ${lost} people.`);
+        }
+        break;
+
+      case "diplomaticVisit":
+        if(state.resources < 3) {
+          appendStory("Not enough resources to send a diplomatic envoy.");
+          return;
+        }
+        state.resources -= 10;
+        const outcome = Math.random();
+        if(outcome < 0.33) {
+          state.happiness += 4;
+          appendStory("The visit boosts your reputation. Happiness increases.");
+        } else if(outcome < 0.66) {
+          state.people += 20;
+          appendStory("Some allies agree to join your town. People increase.");
+        } else {
+          appendStory("Nothing comes from the diplomatic visit.");
+        }
+        break;
+
+      case "fortifyWalls":
+        if(state.resources < 5) {
+          appendStory("Not enough resources to fortify the town's walls.");
+          return;
+        }
+        state.resources -= 5;
+        state.safety += 5;
+        appendStory("The town's walls are strengthened. Safety improves.");
+        break;
+
+      case "harvestForest":
+        if (Math.random() < 0.8) {
+          const gain = Math.floor(Math.random() * 4) + 1;
+          state.resources += gain;
+          appendStory(`You harvest the forest and gain ${gain} resources.`);
+        } else {
+          state.happiness -= 2;
+          appendStory("Overharvesting angers the spirits of the forest. Happiness drops.");
+        }
+        break;
+
+      default:
+        appendStory("Unknown action.");
+        return;
+    }
+
+    // Advance the day and trigger random events
+    randomEvent();
+    state.day++;
+    updateStats();
+    checkGameOver();
+  }
+
+  const actionDescriptions = {
+    buildWell: "build a well",
+    hostFestival: "host a festival",
+    enforceLaw: "enforce the law",
+    recruitGuards: "recruit guards",
+    expandHousing: "expand housing",
+    trainFarmers: "train farmers",
+    researchMedicine: "research medicine",
+    buildMarket: "build a market",
+    restDay: "rest for the day",
+    lookForSurvivors: "look for survivors",
+    scavengeRuins: "scavenge ruins",
+    diplomaticVisit: "send a diplomatic envoy",
+    fortifyWalls: "fortify the walls",
+    harvestForest: "harvest forest resources"
+  };
+
+  actionsEl.addEventListener('click', e => {
+    if(e.target.classList.contains('action')) {
+      performAction(e.target.dataset.action);
+    }
+  });
+
+  restartBtn.addEventListener('click', () => {
+    state = {
+      day: 1,
+      people: 25,
+      resources: 50,
+      happiness: 15,
+      safety: 15,
+      gameOver: false,
+    };
+    storyEl.textContent = "";
+    actionsEl.querySelectorAll('button').forEach(b => b.disabled = false);
+    appendStory("Welcome! Manage your town’s resources, happiness, safety, and population to survive as many days as possible.");
+    updateStats();
+  });
+
+  // Render scoreboard on page load
+  renderScoreboard();
+
+  // Start the game on load
+  restartBtn.click();
+
+})();
+
+    document.getElementById('resetScoreboardBtn').addEventListener('click', () => {
+  if (confirm("Are you sure you want to reset the scoreboard?")) {
+    localStorage.removeItem('survivalScores');
+    scores = [];
+    renderScoreboard();
+    alert("Scoreboard has been reset.");
+  }
+});
+
+</script>
+
+</body>
+</html>

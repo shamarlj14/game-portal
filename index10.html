@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odd One Out</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    h1 {
+      color: aqua;
+    }
+    #game {
+      display: grid;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .box {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .box:hover {
+      outline: 2px solid white;
+    }
+    #info {
+      margin-top: 20px;
+    }
+    #start {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      background-color: aqua;
+      border: none;
+      color: black;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    #scoreboard {
+      margin-top: 30px;
+      color: gold;
+    }
+    input {
+      padding: 5px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Odd One Out</h1>
+  <div id="info">
+    <p>Time: <span id="timer">10</span>s</p>
+    <p>Score: <span id="score">0</span></p>
+    <input type="text" id="playerName" placeholder="Enter your name">
+  </div>
+  <div id="game"></div>
+  <button id="start">Start Game</button>
+
+  <div id="scoreboard">
+    <h2>Scoreboard</h2>
+    <ol id="scoreList"></ol>
+  </div>
+
+  <script>
+    const game = document.getElementById('game');
+    const timerDisplay = document.getElementById('timer');
+    const scoreDisplay = document.getElementById('score');
+    const startBtn = document.getElementById('start');
+    const playerNameInput = document.getElementById('playerName');
+    const scoreList = document.getElementById('scoreList');
+
+    let timer;
+    let timeLeft = 10;
+    let score = 0;
+    let level = 1;
+    let oddBoxIndex = 0;
+
+    function startGame() {
+      if (!playerNameInput.value.trim()) {
+        alert("Enter your name to start!");
+        return;
+      }
+      score = 0;
+      timeLeft = 10;
+      level = 1;
+      scoreDisplay.textContent = score;
+      timerDisplay.textContent = timeLeft;
+      generateGrid();
+      clearInterval(timer);
+      timer = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      timerDisplay.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        alert("Game over! Your score: " + score);
+        updateScoreboard(playerNameInput.value.trim(), score);
+      }
+    }
+
+    function generateGrid() {
+      game.innerHTML = '';
+      const size = Math.min(5 + Math.floor(score / 5), 10);
+      game.style.gridTemplateColumns = `repeat(${size}, 50px)`;
+      const totalBoxes = size * size;
+      const baseColor = randomColor();
+      const oddColor = slightlyDifferentColor(baseColor);
+      oddBoxIndex = Math.floor(Math.random() * totalBoxes);
+
+      for (let i = 0; i < totalBoxes; i++) {
+        const box = document.createElement('div');
+        box.classList.add('box');
+        box.style.backgroundColor = i === oddBoxIndex ? oddColor : baseColor;
+        box.addEventListener('click', () => handleClick(i));
+        game.appendChild(box);
+      }
+    }
+
+    function handleClick(index) {
+      if (index === oddBoxIndex) {
+        score++;
+        timeLeft += 2;
+        scoreDisplay.textContent = score;
+        timerDisplay.textContent = timeLeft;
+        generateGrid();
+      } else {
+        timeLeft -= 2;
+        if (timeLeft < 0) timeLeft = 0;
+        timerDisplay.textContent = timeLeft;
+      }
+    }
+
+    function randomColor() {
+      const r = Math.floor(Math.random() * 200);
+      const g = Math.floor(Math.random() * 200);
+      const b = Math.floor(Math.random() * 200);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function slightlyDifferentColor(rgb) {
+      const parts = rgb.match(/\d+/g).map(Number);
+      const index = Math.floor(Math.random() * 3);
+      parts[index] = Math.min(parts[index] + 40, 255);
+      return `rgb(${parts[0]}, ${parts[1]}, ${parts[2]})`;
+    }
+
+    function updateScoreboard(name, score) {
+      const entry = document.createElement('li');
+      entry.textContent = `${name}: ${score}`;
+      scoreList.appendChild(entry);
+    }
+
+    startBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>

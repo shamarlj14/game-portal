@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="styles.css">
+     <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+</head>
+  <meta charset="UTF-8">
+  <title>Percentage Game</title>
+  <style>
+  
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: #ffffff;
+  text-align: center;
+  padding: 50px 20px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 40px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.container {
+  margin-top: 20px;
+  padding: 35px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all 0.3s ease;
+}
+
+input[type="text"], input[type="number"] {
+  width: 120px;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: #ffffff;
+  text-align: center;
+  margin: 10px;
+  box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+  outline: none;
+  background: rgba(255,255,255,0.15);
+  box-shadow: inset 0 4px 15px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.3);
+}
+
+button {
+  padding: 14px 30px;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  border: none;
+  border-radius: 15px;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+.scoreboard {
+  margin-top: 40px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  padding: 25px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.scoreboard h2 {
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.scoreboard ul {
+  list-style: none;
+  padding: 0;
+}
+
+.scoreboard li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+#correctPercentage {
+  font-size: 26px;
+  color: #00ffea;
+  margin-top: 25px;
+  text-shadow: 0 2px 8px rgba(0,255,234,0.7);
+  animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 2px 8px rgba(0,255,234,0.5); }
+  to { text-shadow: 0 4px 20px rgba(0,255,234,1); }
+}
+</style>
+
+
+  </style>
+</head>
+<body>
+  <h1>Percentage Game</h1>
+  <p>Enter your name to start:</p>
+  <input type="text" id="playerName" placeholder="Your name">
+  <button onclick="startGame()">Start</button>
+
+  <div class="container" id="game" style="display:none;">
+    <p id="fractionDisplay"></p>
+    <input type="number" id="guess" placeholder="%">
+    <button onclick="checkAnswer()">Submit</button>
+    <p id="feedback"></p>
+    <p id="correctPercentage"></p>
+    <p id="score">Correct: 0</p>
+  </div>
+
+  <div class="scoreboard">
+    <h2>Leaderboard</h2>
+    <ul id="scoreList"></ul>
+  </div>
+
+  <script>
+    const fractionDisplay = document.getElementById('fractionDisplay');
+    const guessInput = document.getElementById('guess');
+    const feedback = document.getElementById('feedback');
+    const scoreDisplay = document.getElementById('score');
+    const scoreList = document.getElementById('scoreList');
+    const playerNameInput = document.getElementById('playerName');
+    const correctPercentageDisplay = document.getElementById('correctPercentage');
+    const gameSection = document.getElementById('game');
+
+    const fractions = [
+     [1, 2], [2, 3], [3, 4], [4, 5], [5, 8], [7, 10],
+  [3, 5], [5, 6], [11, 20], [19, 72], [17, 25], [13, 50],
+  [9, 10], [2, 5], [6, 7], [8, 17], [4, 15], [5, 29], [2, 9], [14,24], [17, 38], [6, 17], [19, 32], [0, 1], [42, 43], 
+  [1, 20], [16, 28], [16, 17], [12, 80], [56, 90], [32, 71], [15, 30], [23,61], [33, 44], [12, 12], [13, 52], [34, 63], [503, 504], [44, 80],[19, 25],[41, 70],[12,44],[62, 90],[2, 100],[14, 100],
+  [100,101],[2, 64],[65, 81],[50, 100],[75, 100],[72, 88],[0, 12], [25, 48],[26, 50],[45, 88],[12, 22],[9, 17],[23, 41],[4, 2],[52, 78],[7, 12],   [44, 97],   [67, 94],
+  [41, 88],[7, 10],[10, 22],[3, 5],[2, 99],[14, 80],[17, 19],[15, 83],[21, 84],[44, 47], [21, 99],[25, 107], [25, 2500],[41, 66],[25, 58],[8, 100],
+        [17, 19],[19, 24],[56,98],[69,420],[506,620]
+
+
+             
+    ];
+
+    let currentFraction = [];
+    let correctAnswers = 0;
+    let playerName = '';
+    let gameStarted = false;
+
+    function getRandomFraction() {
+      currentFraction = fractions[Math.floor(Math.random() * fractions.length)];
+      fractionDisplay.textContent = `What is ${currentFraction[0]}/${currentFraction[1]} as a %?`;
+      guessInput.value = '';
+      feedback.textContent = '';
+      correctPercentageDisplay.textContent = '';
+    }
+
+    function startGame() {
+      const name = playerNameInput.value.trim();
+      if (name === '') {
+        alert("Please enter your name.");
+        return;
+      }
+      playerName = name;
+      correctAnswers = 0;
+      scoreDisplay.textContent = `Correct: ${correctAnswers}`;
+      gameStarted = true;
+      gameSection.style.display = 'block';
+      getRandomFraction();
+    }
+
+function checkAnswer() {
+  const guess = parseInt(guessInput.value);
+  const correct = Math.round((currentFraction[0] / currentFraction[1]) * 100);
+
+  if (guess === correct) {
+    feedback.textContent = `✅ Correct!`;
+    correctAnswers++;
+    scoreDisplay.textContent = `Correct: ${correctAnswers}`;
+    getRandomFraction();
+  } else {
+    // Show correct answer directly on the page
+    feedback.innerHTML = `❌ Wrong! The correct answer was <strong>${correct}%</strong>`;
+    correctPercentageDisplay.textContent = `It was ${correct}%`;
+    
+    // End game visually on page
+    gameSection.style.display = 'none';
+    const finalScoreDisplay = document.createElement('p');
+    finalScoreDisplay.style.marginTop = '20px';
+    finalScoreDisplay.style.fontSize = '18px';
+    finalScoreDisplay.style.color = '#ff6b6b';
+    finalScoreDisplay.innerHTML = `${playerName}, your final score: <strong>${correctAnswers}</strong>`;
+    gameSection.parentNode.insertBefore(finalScoreDisplay, scoreList.parentNode);
+    
+    updateLeaderboard(playerName, correctAnswers);
+
+    // Reset variables for next game
+    gameStarted = false;
+    correctAnswers = 0;
+    scoreDisplay.textContent = `Correct: 0`;
+    playerNameInput.value = '';
+  }
+}
+
+
+    function endGame() {
+      alert(`${playerName}, your final score: ${correctAnswers}`);
+      updateLeaderboard(playerName, correctAnswers);
+      gameStarted = false;
+      correctAnswers = 0;
+      scoreDisplay.textContent = `Correct: 0`;
+      playerNameInput.value = '';
+      gameSection.style.display = 'none';
+    }
+
+    function updateLeaderboard(name, score) {
+      let existing = Array.from(scoreList.children).find(li => li.textContent.startsWith(name + ':'));
+      if (existing) {
+        let existingScore = parseInt(existing.textContent.split(': ')[1]);
+        if (score > existingScore) {
+          existing.textContent = `${name}: ${score}`;
+        }
+      } else {
+        const li = document.createElement('li');
+        li.textContent = `${name}: ${score}`;
+        scoreList.appendChild(li);
+      }
+
+      // Sort scoreboard
+      const items = Array.from(scoreList.children);
+      items.sort((a, b) => {
+        const scoreA = parseInt(a.textContent.split(': ')[1]);
+        const scoreB = parseInt(b.textContent.split(': ')[1]);
+        return scoreB - scoreA;
+      });
+      scoreList.innerHTML = '';
+      items.forEach(item => scoreList.appendChild(item));
+        
+    }
+
+
+        
+  </script>
+</body>
+</html>

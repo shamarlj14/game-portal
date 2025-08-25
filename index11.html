@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>50/50 doors</title>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: red;
+      text-shadow: 0 0 10px red;
+    }
+    .doors {
+      display: flex;
+      gap: 2rem;
+      margin: 2rem;
+    }
+    .door {
+      background: darkred;
+      border: 3px solid #fff;
+      padding: 3rem;
+      cursor: pointer;
+      font-size: 2rem;
+      transition: transform 0.2s;
+    }
+    .door:hover {
+      transform: scale(1.1);
+    }
+    #status {
+      font-size: 1.5rem;
+      margin: 1rem;
+      color: lime;
+    }
+    #scoreboard {
+      background: #111;
+      padding: 1rem;
+      border: 2px solid #444;
+      margin-top: 1rem;
+    }
+    #scoreboard h2 {
+      margin: 0 0 1rem 0;
+      color: orange;
+    }
+    input, button {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>50/50 doors </h1>
+  <div id="status">Enter your name to begin.</div>
+  <div>
+    <input type="text" id="playerName" placeholder="Enter your name" />
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+  <div class="doors">
+    <div class="door" onclick="chooseDoor(1)">Door 1</div>
+    <div class="door" onclick="chooseDoor(2)">Door 2</div>
+  </div>
+  <div id="scoreboard">
+    <h2>Scoreboard</h2>
+    <ul id="highscores"></ul>
+  </div>
+
+  <script>
+    let score = 0;
+    let gameOver = false;
+    let gameStarted = false;
+
+    function startGame() {
+      const name = document.getElementById('playerName').value.trim();
+      if (!name) {
+        alert("Please enter your name to start the game.");
+        return;
+      }
+      gameStarted = true;
+      document.getElementById('status').textContent = "Choose a door... if you dare.";
+      score = 0;
+      gameOver = false;
+    }
+
+    function chooseDoor(door) {
+      if (!gameStarted || gameOver) return;
+
+      const safeDoor = Math.random() < 0.5 ? 1 : 2;
+      if (door === safeDoor) {
+        score++;
+        document.getElementById('status').textContent = `Safe... for now. Score: ${score}`;
+      } else {
+        document.getElementById('status').textContent = 'GAME OVER. You picked the wrong  door tisk tisk tisk .';
+        gameOver = true;
+        addToScoreboard();
+      }
+    }
+
+    function addToScoreboard() {
+      const name = document.getElementById('playerName').value || 'Unknown';
+      const entry = `${name} - ${score} doors`;
+      const li = document.createElement('li');
+      li.textContent = entry;
+      document.getElementById('highscores').appendChild(li);
+    }
+
+    function restartGame() {
+      score = 0;
+      gameOver = false;
+      gameStarted = false;
+      document.getElementById('playerName').value = '';
+      document.getElementById('status').textContent = "Enter your name to begin.";
+    }
+  </script>
+</body>
+</html>

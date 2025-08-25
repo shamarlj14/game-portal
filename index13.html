@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Color Dodge </title>
+<style>
+  body {
+    margin: 0;
+    background: #121212;
+    color: #eee;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    user-select: none;
+  }
+  h1 {
+    margin: 10px 0;
+  }
+  #gameContainer {
+    position: relative;
+    margin: 0 auto;
+    width: 360px;
+    height: 600px;
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px #0ff;
+  }
+  #player {
+    position: absolute;
+    bottom: 20px;
+    left: 160px;
+    width: 40px;
+    height: 40px;
+    background: #0ff;
+    border-radius: 6px;
+    transition: left 0.1s;
+  }
+  .block {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+  }
+  .red { background: #f00; }
+  .green { background: #0f0; }
+  .purple { background: #800080; }
+  .orange { background: #ffa500; }
+  .blue { background: #00f; }
+  .yellow { background: #ff0; }
+  .pink { background: #ff69b4; }
+
+  #scoreboard, #livesDisplay, #infoDisplay, #timerDisplay {
+    font-size: 20px;
+    margin: 6px;
+  }
+  #gameOver {
+    font-size: 24px;
+    color: #ff0;
+    display: none;
+    margin: 10px;
+  }
+  #restartBtn {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #0ff;
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    cursor: pointer;
+    display: none;
+  }
+  #nameInput {
+    margin: 15px 0;
+  }
+  
+  
+  
+  #leaderboard {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 220px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #0ff;
+  border-radius: 12px;
+  padding: 10px;
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 0 12px #0ff;
+  font-family: 'Courier New', monospace;
+  z-index: 10;
+}
+#leaderboard h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  text-align: center;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff;
+}
+#leaderboard ol {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+#leaderboard li {
+  font-size: 16px;
+  margin: 5px 0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #1e1e1e;
+  transition: 0.2s ease;
+}
+#leaderboard li:nth-child(1)::before {
+  content: "🥇 ";
+}
+#leaderboard li:nth-child(2)::before {
+  content: "🥈 ";
+}
+#leaderboard li:nth-child(3)::before {
+  content: "🥉 ";
+}
+
+</style>
+</head>
+<body>
+
+<h1>Color Dodge Ultra</h1>
+
+<div id="nameInput">
+  <input type="text" id="playerName" placeholder="Enter your name" />
+  <button id="startBtn">Start Game</button>
+</div>
+
+<div id="scoreboard">Score: 0</div>
+<div id="livesDisplay">Lives: 3</div>
+<div id="infoDisplay">Points Multiplier: x1</div>
+<div id="timerDisplay">Time Left: 35s</div>
+
+<div id="gameContainer">
+  <div id="player"></div>
+</div>
+
+<div id="gameOver"></div>
+<button id="restartBtn">Restart</button>
+
+<script>
+(() => {
+  const gameContainer = document.getElementById('gameContainer');
+  const player = document.getElementById('player');
+  const scoreboard = document.getElementById('scoreboard');
+  const livesDisplay = document.getElementById('livesDisplay');
+  const infoDisplay = document.getElementById('infoDisplay');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const gameOverText = document.getElementById('gameOver');
+  const restartBtn = document.getElementById('restartBtn');
+  const startBtn = document.getElementById('startBtn');
+  const nameInputDiv = document.getElementById('nameInput');
+  const playerNameInput = document.getElementById('playerName');
+
+  let playerX = 160;
+  const playerWidth = 40;
+  const gameWidth = 360;
+  let blocks = [];
+  let blockSpeed = 2;
+  let spawnInterval, gameInterval, speedIncreaseInterval, timerInterval;
+  let score = 0;
+  let lives = 3;
+  let gameActive = false;
+  let playerName = "";
+  let leaderboard = JSON.parse(localStorage.getItem('colorDodgeLeaderboardUltra') || '[]');
+  let pointsMultiplier = 1;
+  let purpleBlockActive = false;
+  let playerFrozen = false;
+  let shieldActive = false;
+  let timeLeft = 35;
+
+  const blockTypes = [
+    { color: 'red', weight: 40 },    // normal obstacle
+    { color: 'green', weight: 15 },  // speed up
+    { color: 'purple', weight: 10 }, // point boost
+    { color: 'orange', weight: 10 }, // random effect
+    { color: 'blue', weight: 10 },   // slows falling blocks
+    { color: 'yellow', weight: 10 }, // freezes player movement
+    { color: 'pink', weight: 5 }     // shield
+  ];
+
+  function weightedRandom() {
+    const total = blockTypes.reduce((sum, b) => sum + b.weight, 0);
+    let r = Math.random() * total;
+    for (const b of blockTypes) {
+      if (r < b.weight) return b.color;
+      r -= b.weight;
+    }
+    return 'red'; // fallback
+  }
+
+  function createBlock() {
+    if (!gameActive) return;
+    const color = weightedRandom();
+    const block = document.createElement('div');
+    block.className = `block ${color}`;
+    block.dataset.color = color;
+    block.style.left = Math.floor(Math.random() * (gameWidth / 40)) * 40 + 'px';
+    block.style.top = '-40px';
+    gameContainer.appendChild(block);
+    blocks.push(block);
+  }
+
+  function moveBlocks() {
+    if (!gameActive) return;
+    for (let i = blocks.length -1; i >= 0; i--) {
+      let block = blocks[i];
+      let top = parseFloat(block.style.top);
+      top += blockSpeed;
+      block.style.top = top + 'px';
+
+      if (top > gameContainer.clientHeight) {
+        block.remove();
+        blocks.splice(i,1);
+        if (block.dataset.color !== 'red') {
+          continue;
+        }
+        score += pointsMultiplier;
+        updateScore();
+      } else if (collision(block, player)) {
+        handleCollision(block, i);
+      }
+    }
+  }
+
+  function handleCollision(block, index) {
+    const color = block.dataset.color;
+    if (color === 'red') {
+      if (shieldActive) {
+        showMsg('Shield blocked hit!');
+        block.remove();
+        blocks.splice(index,1);
+        return;
+      }
+      lives--;
+      updateLives();
+      block.remove();
+      blocks.splice(index,1);
+      if (lives <= 0) {
+        endGame('Game Over! You got hit too many times.');
+        return;
+      }
+    } else if (color === 'green') {
+      block.remove();
+      blocks.splice(index,1);
+      increaseSpeed();
+    } else if (color === 'purple') {
+      block.remove();
+      blocks.splice(index,1);
+      activatePurplePower();
+    } else if (color === 'orange') {
+      block.remove();
+      blocks.splice(index,1);
+      activateRandomEffect();
+    } else if (color === 'blue') {
+      block.remove();
+      blocks.splice(index,1);
+      slowBlocks();
+    } else if (color === 'yellow') {
+      block.remove();
+      blocks.splice(index,1);
+      freezePlayer();
+    } else if (color === 'pink') {
+      block.remove();
+      blocks.splice(index,1);
+      activateShield();
+    }
+  }
+
+  function collision(rect1, rect2) {
+    const r1 = rect1.getBoundingClientRect();
+    const r2 = rect2.getBoundingClientRect();
+    return !(
+      r1.top > r2.bottom ||
+      r1.bottom < r2.top ||
+      r1.left > r2.right ||
+      r1.right < r2.left
+    );
+  }
+
+  function updateScore() {
+    scoreboard.textContent = `Score: ${score}`;
+  }
+  function updateLives() {
+    livesDisplay.textContent = `Lives: ${lives}`;
+  }
+  function updateMultiplier() {
+    infoDisplay.textContent = `Points Multiplier: x${pointsMultiplier}`;
+  }
+  function updateTimer() {
+    timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+  }
+
+  function increaseSpeed() {
+    blockSpeed += 1;
+    showMsg('Speed Increased!');
+  }
+
+  function activatePurplePower() {
+    if (purpleBlockActive) return;
+    purpleBlockActive = true;
+    pointsMultiplier = 2;
+    updateMultiplier();
+    showMsg('Double Points!');
+    setTimeout(() => {
+      purpleBlockActive = false;
+      pointsMultiplier = 1;
+      updateMultiplier();
+    }, 7000);
+  }
+
+  function activateRandomEffect() {
+    const effects = [
+      () => { lives++; updateLives(); showMsg('Extra Life!'); },
+      () => { blockSpeed = Math.max(1, blockSpeed - 1); showMsg('Speed Decreased!'); },
+      () => {
+        pointsMultiplier = 3;
+        updateMultiplier();
+        showMsg('Triple Points!');
+        setTimeout(() => {
+          pointsMultiplier = purpleBlockActive ? 2 : 1;
+          updateMultiplier();
+        }, 5000);
+      },
+      () => { score += 5; updateScore(); showMsg('+5 Bonus Points!'); }
+    ];
+    const effect = effects[Math.floor(Math.random() * effects.length)];
+    effect();
+  }
+
+  function slowBlocks() {
+    blockSpeed = Math.max(1, blockSpeed - 1.5);
+    showMsg('Blocks Slowed!');
+    setTimeout(() => {
+      if (gameActive) blockSpeed += 1.5;
+    }, 5000);
+  }
+
+  function freezePlayer() {
+    if (playerFrozen) return;
+    playerFrozen = true;
+    showMsg('Player Frozen!');
+    setTimeout(() => {
+      playerFrozen = false;
+      showMsg('Player Unfrozen!');
+    }, 3000);
+  }
+
+  function activateShield() {
+    if (shieldActive) return;
+    shieldActive = true;
+    showMsg('Shield Activated!');
+    setTimeout(() => {
+      shieldActive = false;
+      showMsg('Shield Expired!');
+    }, 5000);
+  }
+
+  function showMsg(msg) {
+    infoDisplay.textContent = msg;
+    setTimeout(() => updateMultiplier(), 1500);
+  }
+
+  function startTimer() {
+    timeLeft = 35;
+    updateTimer();
+    timerInterval = setInterval(() => {
+      if (!gameActive) {
+        clearInterval(timerInterval);
+        return;
+      }
+      timeLeft--;
+      updateTimer();
+      if (timeLeft <= 0) {
+        endGame('Time’s Up! Great Job!');
+      }
+    }, 1000);
+  }
+
+  function startGame() {
+    playerName = playerNameInput.value.trim() || 'Player';
+    if (!playerName) {
+      alert('Please enter your name!');
+      return;
+    }
+    nameInputDiv.style.display = 'none';
+    gameActive = true;
+    score = 0;
+    lives = 3;
+    blockSpeed = 2;
+    pointsMultiplier = 1;
+    purpleBlockActive = false;
+    playerFrozen = false;
+    shieldActive = false;
+    blocks.forEach(b => b.remove());
+    blocks = [];
+    player.style.left = playerX + 'px';
+    updateScore();
+    updateLives();
+    updateMultiplier();
+    updateTimer();
+    gameOverText.style.display = 'none';
+    restartBtn.style.display = 'none';
+
+    spawnInterval = setInterval(createBlock, 400);
+    gameInterval = setInterval(moveBlocks, 20);
+    speedIncreaseInterval = setInterval(() => {
+      if (blockSpeed < 10) blockSpeed += 0.1;
+    }, 5000);
+    startTimer();
+  }
+
+  function endGame(message) {
+    gameActive = false;
+    clearInterval(spawnInterval);
+    clearInterval(gameInterval);
+    clearInterval(speedIncreaseInterval);
+    clearInterval(timerInterval);
+    blocks.forEach(b => b.remove());
+    blocks = [];
+    gameOverText.textContent = `${message} Score: ${score}`;
+    gameOverText.style.display = 'block';
+    restartBtn.style.display = 'inline-block';
+
+    leaderboard.push({ name: playerName, score });
+    leaderboard.sort((a,b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0,5);
+    localStorage.setItem('colorDodgeLeaderboardUltra', JSON.stringify(leaderboard));
+    renderLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    let leaderboardDiv = document.getElementById('leaderboard');
+    if (!leaderboardDiv) {
+      leaderboardDiv = document.createElement('div');
+      leaderboardDiv.id = 'leaderboard';
+      document.body.appendChild(leaderboardDiv);
+    }
+    leaderboardDiv.innerHTML = '<h3>🏆 Leaderboard</h3><ol>' + leaderboard.map(p => `<li>${p.name}: ${p.score}</li>`).join('') + '</ol>';
+  }
+
+  restartBtn.addEventListener('click', () => {
+    nameInputDiv.style.display = 'block';
+    gameOverText.style.display = 'none';
+    restartBtn.style.display = 'none';
+  });
+
+  window.addEventListener('keydown', e => {
+    if (!gameActive || playerFrozen) return;
+    if (e.key === 'ArrowLeft') {
+      playerX = Math.max(0, playerX - 40);
+      player.style.left = playerX + 'px';
+    }
+    if (e.key === 'ArrowRight') {
+      playerX = Math.min(gameWidth - playerWidth, playerX + 40);
+      player.style.left = playerX + 'px';
+    }
+  });
+
+  renderLeaderboard();
+  startBtn.addEventListener('click', startGame);
+})();
+  
+  function renderLeaderboard() {
+  let leaderboardDiv = document.getElementById('leaderboard');
+  if (!leaderboardDiv) {
+    leaderboardDiv = document.createElement('div');
+    leaderboardDiv.id = 'leaderboard';
+    document.body.appendChild(leaderboardDiv);
+  }
+  leaderboardDiv.innerHTML = `
+    <h3>🏆 Leaderboard</h3>
+    <ol>
+      ${leaderboard.map((p, i) => `<li>${p.name}: <strong>${p.score}</strong></li>`).join('')}
+    </ol>
+  `;
+}
+
+</script>
+</body>
+</html>

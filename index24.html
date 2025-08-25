@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Town Gate</title>
+  <h1>Bet you can get more than 25 good with no mess-ups."</h1>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #8b5e3c, #d4c0a1);
+      color: #3f2e0f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 0 40px;
+      user-select: none;
+    }
+    header {
+      background: #5a422a;
+      width: 100%;
+      max-width: 680px;
+      padding: 14px 20px;
+      margin-bottom: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgb(0 0 0 / 0.3);
+      display: flex;
+      justify-content: space-around;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #f4e7c1;
+      font-variant: small-caps;
+      letter-spacing: 1.3px;
+      text-shadow: 1px 1px 3px #2e1f0a;
+    }
+    header div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border-radius: 8px;
+      background: rgba(255 255 255 / 0.15);
+      box-shadow: inset 0 0 8px rgb(0 0 0 / 0.15);
+      min-width: 100px;
+      justify-content: center;
+    }
+    header .good {
+      background: #3f6a20cc;
+    }
+    header .bad {
+      background: #a42a24cc;
+    }
+    header .people {
+      background: #36548dcc;
+    }
+    header .sus {
+      background: #c1a53ecc;
+    }
+    header span {
+      font-weight: 900;
+      font-size: 1.6rem;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+    }
+
+    .game-container {
+      background: #f8f2d7;
+      border-radius: 15px;
+      box-shadow: 0 8px 22px rgb(0 0 0 / 0.25);
+      padding: 35px 45px 50px;
+      width: 90%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      border: 3px solid #a67c39;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+    }
+
+    .emoji-slide {
+      font-size: 90px;
+      user-select: none;
+      animation: slideIn 0.6s ease forwards;
+      transform: translateX(-130%);
+      opacity: 0;
+      text-shadow: 2px 2px 5px #705a21aa;
+    }
+    @keyframes slideIn {
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    #line {
+      font-size: 1.3rem;
+      color: #5d4b1c;
+      font-style: italic;
+      min-height: 100px;
+      text-align: center;
+      padding: 0 15px;
+      line-height: 1.4;
+      letter-spacing: 0.04em;
+      user-select: text;
+      text-shadow: 1px 1px 1px #d7cfa1;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 22px;
+    }
+    button {
+      padding: 14px 34px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.2);
+      transition: background-color 0.3s ease, transform 0.15s ease;
+      user-select: none;
+      font-family: 'Georgia', serif;
+      letter-spacing: 1.2px;
+      text-shadow: 1px 1px 3px #553d00aa;
+    }
+    button:hover:not(:disabled) {
+      transform: scale(1.07);
+      box-shadow: 0 6px 20px rgb(0 0 0 / 0.3);
+    }
+    button:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+    .accept {
+      background-color: #3c6619;
+      color: #e8f4d9;
+      border: 2px solid #6b9133;
+      box-shadow: inset 0 0 8px #a3d161aa;
+    }
+    .deny {
+      background-color: #b6352c;
+      color: #ffdfdf;
+      border: 2px solid #d6534f;
+      box-shadow: inset 0 0 8px #d16b63aa;
+    }
+    .restart {
+      background-color: #704f27;
+      color: #f7e9ca;
+      border: 2px solid #997444;
+      box-shadow: inset 0 0 8px #c4a961aa;
+    }
+
+    #log {
+      width: 100%;
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 0.95em;
+      border-top: 1.5px solid #b7a15f;
+      padding: 14px 12px 12px;
+      background: #fff9dc;
+      color: #5b4b0a;
+      box-shadow: inset 0 0 15px #d9d1a533;
+      border-radius: 10px;
+      font-family: 'Georgia', serif;
+      user-select: text;
+    }
+    #log div {
+      margin-bottom: 8px;
+      background: #f0e9b8;
+      border-radius: 8px;
+      padding: 6px 14px;
+      box-shadow: 1px 1px 3px #b1a93c88;
+    }
+
+    /* Town residents panel */
+    #townResidents {
+      margin-top: 40px;
+      width: 90%;
+      max-width: 680px;
+      background: #f9f1bf;
+      border: 2.5px solid #a88e3c;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+      padding: 20px 25px 30px;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+      color: #4a3e07;
+      user-select: none;
+    }
+    #townResidents h2 {
+      margin: 0 0 18px;
+      font-weight: 800;
+      font-size: 1.8rem;
+      letter-spacing: 1.3px;
+      text-shadow: 1px 1px 2px #e3d998;
+      border-bottom: 2px solid #a88e3c;
+      padding-bottom: 6px;
+    }
+    #residentsList {
+      max-height: 210px;
+      overflow-y: auto;
+      border: 1.8px solid #c1b86b;
+      border-radius: 10px;
+      background: #fffbea;
+      box-shadow: inset 0 0 14px #d3cc79aa;
+      padding: 10px 12px;
+      font-size: 1.1rem;
+    }
+    #residentsList p {
+      margin: 0;
+      font-style: italic;
+      color: #877e3a;
+      text-align: center;
+      user-select: text;
+    }
+    .resident {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 9px;
+      background: #f0e5a8;
+      box-shadow: 1px 1px 3px #bdb244bb;
+      border-left: 6px solid #7a6f1a;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    .resident.good {
+      border-left-color: #4b7a16;
+      background: #d3e3a9;
+      color: #3f5d0f;
+    }
+    .resident.bad {
+      border-left-color: #a13921;
+      background: #f6c4c4;
+      color: #7d2b27;
+    }
+    .resident .emoji {
+      font-size: 30px;
+      user-select: none;
+      text-shadow: 1px 1px 1px #999357aa;
+      width: 36px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .resident .name {
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      user-select: text;
+      flex-grow: 1;
+    }
+    .resident .status {
+      font-weight: 700;
+      font-style: italic;
+      font-size: 0.95rem;
+      min-width: 50px;
+      text-align: center;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="good">✔️ Good: <span id="good">0</span></div>
+  <div class="bad">❌ Bad: <span id="bad">0</span></div>
+  <div class="people">👥 People: <span id="people">0</span></div>
+  <div class="sus">🤨 Suspicion: <span id="sus">0</span></div>
+</header>
+
+<div class="game-container" role="main" aria-label="Liars Table Town Gate Game">
+  <div class="emoji-slide" id="emoji" aria-live="polite" aria-atomic="true">👀</div>
+  <div id="line" aria-live="polite" aria-atomic="true">"A traveler arrives at your town gate..."</div>
+
+  <div class="buttons" role="group" aria-label="Accept or deny visitor">
+    <button class="accept" id="acceptBtn" aria-describedby="descAccept">Accept</button>
+    <button class="deny" id="denyBtn" aria-describedby="descDeny">Deny</button>
+    <button class="restart" id="restartBtn">Restart</button>
+  </div>
+
+  <div id="log" aria-live="polite" aria-atomic="true" aria-relevant="additions"></div>
+</div>
+
+<section id="townResidents" aria-label="People in your town">
+  <h2>People in Your Town (<span id="residentsCount">0</span>)</h2>
+  <div id="residentsList">
+    <p>No one has entered your town yet.</p>
+  </div>
+</section>
+
+<script>
+  // Visitors list (125+ entries)
+const visitors = [
+  {emoji: "😎", name: "Coolio", line: "I’m the coolest guy around, but I once lost my sunglasses in the river.", isGood: true},
+  {emoji: "🤖", name: "Robo", line: "Beep boop. I come in peace, but sometimes I glitch and forget my mission.", isGood: true},
+  {emoji: "👻", name: "Spooky", line: "Boo! I’m harmless, but I sometimes haunt old libraries at midnight.", isGood: true},
+  // Removed Whiskers (the 4th visitor)
+  {emoji: "👽", name: "Zorg", line: "Greetings Earthling. I come from a peaceful planet, yet my ship crash-landed here last week.", isGood: true},
+  {emoji: "🐸", name: "Hopper", line: "Ribbit! I’m here to join your pond community, though I rarely leave the lily pads.", isGood: true},
+  {emoji: "🤡", name: "Jester", line: "I bring laughter, but some say my jokes have a dark twist.", isGood: true},
+  {emoji: "🧙‍♂️", name: "Merlin", line: "Magic is real, but only I can see its true power.", isGood: true},
+  {emoji: "🧛‍♀️", name: "Vampira", line: "Don’t worry, I only bite on special occasions... mostly during full moons.", isGood: false},
+  {emoji: "🧞", name: "Genie", line: "Three wishes coming your way! Or maybe just one... depends on my mood.", isGood: false},
+  {emoji: "🧟", name: "Walker", line: "Brains? No, I’m just after some peaceful rest. Not what you think.", isGood: false},
+  {emoji: "👨‍🌾", name: "Farmer Joe", line: "I grow the best crops, but last season my entire harvest mysteriously vanished.", isGood: true},
+  {emoji: "👮", name: "Sheriff", line: "Law and order are my mission. Unless the townsfolk don’t look.", isGood: true},
+  {emoji: "👷", name: "Builder Bob", line: "I fix everything, though sometimes I ‘accidentally’ break things first.", isGood: true},
+  {emoji: "🕵️", name: "Sleuth", line: "I solve mysteries, but some say I create more than I solve.", isGood: true},
+  {emoji: "🧕", name: "Amina", line: "Peace and friendship are my gifts, but I won’t hesitate to defend my own.", isGood: true},
+  {emoji: "🧑‍🏫", name: "Professor Lee", line: "Education is key, though I sometimes forget my own lessons.", isGood: true},
+  {emoji: "🧑‍🍳", name: "Chef Anna", line: "Delicious meals, except the one time I accidentally served soup with soap.", isGood: true},
+  {emoji: "👨‍🎨", name: "Picasso", line: "Art beautifies, but my latest masterpiece was called ‘Chaos’ and banned.", isGood: true},
+  {emoji: "🧑‍🚀", name: "Rocket", line: "One small step for me, but I still haven’t left town yet.", isGood: true},
+
+  // New complex visitors
+  {emoji: "😈", name: "Trickster", line: "I’m just here for fun... or maybe to steal a secret or two.", isGood: false},
+  {emoji: "🐍", name: "Slither", line: "Don’t trust appearances; I’m sneaky but loyal to my own.", isGood: false},
+  {emoji: "🦊", name: "Foxy", line: "Cunning and quick, I protect the town from unseen dangers.", isGood: true},
+  {emoji: "🐯", name: "Tiger", line: "Strength and courage guide me, but sometimes pride blinds me.", isGood: true},
+  {emoji: "🐰", name: "Bunny", line: "Peaceful and calm, yet I’ve heard whispers of secret gatherings.", isGood: true},
+  {emoji: "🦄", name: "Sparkle", line: "Magic and dreams light up the town, but not all dreams are sweet.", isGood: true},
+  {emoji: "🐻", name: "Grizzly", line: "A strong protector, but sometimes too fierce to be trusted.", isGood: true},
+  {emoji: "🦉", name: "Owl", line: "Wisdom guides me, but I’ve seen things better left unseen.", isGood: true},
+  {emoji: "🐦", name: "Tweety", line: "Songs of joy, but sometimes my tunes hide sorrow.", isGood: true},
+  {emoji: "🐸", name: "Prince Ribbit", line: "A royal frog seeking a kingdom, but some say I’m no prince at all.", isGood: true},
+  {emoji: "🦅", name: "Eagle", line: "Watchful eyes, but sometimes they see what isn’t there.", isGood: true},
+  {emoji: "🐢", name: "Turtle", line: "Slow and steady, but I carry old secrets in my shell.", isGood: true},
+  {emoji: "🦖", name: "Rex", line: "Big and bold defender, or just a loud bully?", isGood: false},
+  {emoji: "🦓", name: "Zebra", line: "Unique stripes, but sometimes I blend too well into the crowd.", isGood: true},
+  {emoji: "🐙", name: "Octo", line: "Many hands to work, but I sometimes hide claws beneath.", isGood: true},
+  {emoji: "🦋", name: "Butterfly", line: "Transformation and hope, but beware the chaos I bring.", isGood: true},
+  {emoji: "🐝", name: "Buzz", line: "Hardworking and buzzing, but I sting when crossed.", isGood: true},
+  {emoji: "🦥", name: "Sloth", line: "Patience is my virtue, or maybe just laziness.", isGood: true},
+  {emoji: "🐬", name: "Splash", line: "Waves of happiness, but sometimes I cause storms too.", isGood: true},
+  {emoji: "🦩", name: "Flamingo", line: "Standing tall and proud, but easily startled.", isGood: true},
+  {emoji: "🐧", name: "Waddle", line: "Chilly charm with a warm heart, but sometimes clumsy.", isGood: true},
+  {emoji: "🦦", name: "Otter", line: "Playful and loyal, but I can be mischievous too.", isGood: true},
+
+  // Additional new visitors
+  {emoji: "🧙‍♀️", name: "Morgana", line: "I weave spells of protection, but some say I curse the unwary.", isGood: false},
+  {emoji: "🧛‍♂️", name: "Drake", line: "I only feed on injustice, or so I claim.", isGood: false},
+  {emoji: "🐺", name: "Luna", line: "I watch over the night, but sometimes I howl at the wrong moon.", isGood: true},
+  {emoji: "🦇", name: "Shadow", line: "Silent as the night, but my intentions are murky.", isGood: false},
+  {emoji: "🧙‍♂️", name: "Gandalf", line: "I’m here to guide, though some say my advice leads astray.", isGood: true},
+  {emoji: "🦄", name: "Glitter", line: "Bringing sparkle and joy, but not all that glitters is gold.", isGood: true},
+  {emoji: "🦄", name: "Shimmer", line: "Magic flows through me, but sometimes it blinds others.", isGood: true},
+  {emoji: "🐉", name: "Draco", line: "Fire and fury, but my heart is soft beneath scales.", 
+   isGood: false},
+ 
+  // Existing ones from before (for continuity, can combine later)
+  {emoji: "😎", name: "Coolio", line: "I’m the coolest guy around, but I once lost my sunglasses in the river.", isGood: true},
+  {emoji: "🤖", name: "Robo", line: "Beep boop. I come in peace, but sometimes I glitch and forget my mission.", isGood: true},
+  {emoji: "👻", name: "Spooky", line: "Boo! I’m harmless, but I sometimes haunt old libraries at midnight.", isGood: true},
+  {emoji: "👽", name: "Zorg", line: "Greetings Earthling. I come from a peaceful planet, yet my ship crash-landed here last week.", isGood: true},
+  {emoji: "🐸", name: "Hopper", line: "Ribbit! I’m here to join your pond community, though I rarely leave the lily pads.", isGood: true},
+  {emoji: "🤡", name: "Jester", line: "I bring laughter, but some say my jokes have a dark twist.", isGood: true},
+  {emoji: "🧙‍♂️", name: "Merlin", line: "Magic is real, but only I can see its true power.", isGood: true},
+  {emoji: "🧛‍♀️", name: "Vampira", line: "Don’t worry, I only bite on special occasions... mostly during full moons.", isGood: false},
+  {emoji: "🧞", name: "Genie", line: "Three wishes coming your way! Or maybe just one... depends on my mood.", isGood: false},
+  {emoji: "🧟", name: "Walker", line: "Brains? No, I’m just after some peaceful rest. Not what you think.", isGood: false},
+
+  // Expanded new visitors
+  {emoji: "🐉", name: "Ember", line: "I’m a dragon lost from my clan, but I swear I’ve only used fire for good.", isGood: false},
+  {emoji: "🧚‍♀️", name: "Tinker", line: "I sprinkle magic dust to make flowers bloom, but some say I steal memories.", isGood: false},
+  {emoji: "🧛‍♂️", name: "Drake", line: "I only feed on injustice, or so I claim. But I’ve never harmed a child.", isGood: false},
+  {emoji: "🦉", name: "Sage", line: "Wisdom guides me, yet I sometimes hide secrets that could shake the town.", isGood: true},
+  {emoji: "🦊", name: "Clever", line: "I’m quick and sly, always a step ahead. You can trust me... mostly.", isGood: true},
+  {emoji: "🐺", name: "Luna", line: "I watch over the night, but sometimes I howl at the wrong moon.", isGood: true},
+  {emoji: "🦇", name: "Shadow", line: "Silent as the night, but my intentions are murky.", isGood: false},
+  {emoji: "🧙‍♀️", name: "Morgana", line: "I weave spells of protection, but some say I curse the unwary.", isGood: false},
+  {emoji: "🦄", name: "Glitter", line: "Bringing sparkle and joy, but not all that glitters is gold.", isGood: true},
+  {emoji: "🐝", name: "Buzz", line: "Hardworking and buzzing, but I sting when crossed.", isGood: true},
+  {emoji: "🐸", name: "Prince Ribbit", line: "A royal frog seeking a kingdom, but some say I’m no prince at all.", isGood: true},
+  {emoji: "🦖", name: "Rex", line: "Big and bold defender, or just a loud bully?", isGood: false},
+
+  // More new visitors with layered stories
+  {emoji: "👩‍🌾", name: "Maggie", line: "I tend the fields, but sometimes crops vanish overnight, and I don't know why.", isGood: true},
+  {emoji: "👨‍🔧", name: "Fixit", line: "I repair broken things, but some say I’m the one breaking them first.", isGood: false},
+  {emoji: "👮‍♀️", name: "Officer Joy", line: "Keeping peace is my duty, though sometimes I bend the rules for friends.", isGood: true},
+  {emoji: "👩‍🎤", name: "Starlight", line: "My songs bring hope, but I’ve heard rumors my melodies cause strange dreams.", isGood: true},
+  {emoji: "👴", name: "Old Joe", line: "I’ve lived here 70 years and seen it all, but I sometimes forget what’s real.", isGood: true},
+  {emoji: "👩‍🔬", name: "Dr. Nova", line: "Science is truth, but my experiments sometimes have unexpected results.", isGood: true},
+  {emoji: "👹", name: "Grim", line: "I scare troublemakers away, or so I say. Sometimes I start trouble too.", isGood: false},
+  {emoji: "🤠", name: "Cowboy Jim", line: "I’m the fastest draw in town, but I’ve never fired a shot in anger.", isGood: true},
+  {emoji: "🧟‍♂️", name: "Shamble", line: "I’m a friendly zombie, but I lose track of time... and sometimes limbs.", isGood: false},
+  {emoji: "🧙‍♂️", name: "Alric", line: "I’ve mastered the arcane, yet my power comes at a mysterious cost.", isGood: false},
+
+  // Even more visitors with conflicting statements
+  {emoji: "🐢", name: "Shelly", line: "Slow but wise, though I sometimes forget where I put my shell.", isGood: true},
+  {emoji: "🐦", name: "Chirp", line: "Songs of joy, but my voice cracks when I’m nervous.", isGood: true},
+  {emoji: "🦦", name: "River", line: "Playful and loyal, yet I vanish for days with no explanation.", isGood: false},
+  {emoji: "🦩", name: "Flora", line: "Standing tall and proud, but I’m afraid of storms.", isGood: true},
+  {emoji: "🐧", name: "Waddles", line: "Marching with chilly charm, but I sometimes trip on ice.", isGood: true},
+  {emoji: "🐙", name: "Ink", line: "Many hands to help, but I keep secrets in my ink.", isGood: false},
+  {emoji: "🦋", name: "Glow", line: "Transformation and hope, but some changes hurt more than heal.", isGood: true},
+  {emoji: "🦓", name: "Stripes", line: "Unique and proud, but I sometimes feel invisible in the crowd.", isGood: true},
+  {emoji: "🐻", name: "Kodi", line: "Strong protector, but I sometimes lose my temper.", isGood: true},
+  {emoji: "🐰", name: "Binky", line: "Peaceful and calm, but I get startled easily.", isGood: true},
+
+  // A few mysterious new ones with vague lines
+  {emoji: "🌕", name: "Moonshadow", line: "I walk between light and dark; some say I’m a ghost.", isGood: false},
+  {emoji: "⚡", name: "Volt", line: "Speed and power, but sometimes my energy fades suddenly.", isGood: true},
+  {emoji: "🔥", name: "Blaze", line: "I bring warmth and light, but I can burn down what I love.", isGood: false},
+  {emoji: "🌪️", name: "Gale", line: "I’m a force of nature, but sometimes I lose control.", isGood: false},
+  {emoji: "💧", name: "Drip", line: "Calm and steady, but sometimes I flood the lowlands.", isGood: true},
+
+  // Visitors with lines referencing each other or events (adds story complexity)
+  {emoji: "🧙‍♂️", name: "The Grey", line: "I saw Morgana and Alric arguing last night about forbidden spells.", isGood: true},
+  {emoji: "👮‍♂️", name: "Marshal", line: "Trickster was seen near the granary before the crops vanished.", isGood: true},
+  {emoji: "🦊", name: "Whisper", line: "I heard Buzz complaining about someone stealing honey.", isGood: true},
+  {emoji: "🐝", name: "Buzz", line: "I’m working hard, but someone keeps sabotaging the hives.", isGood: true},
+ 
+  {emoji: "👹", name: "Grim", line: "Don’t trust Walker or Shamble, they lurk in the shadows.", isGood: false},
+  
+  {emoji: "👹", name: "Shamble", line: "Grim’s words hold truth... but he forgets his own past sometimes.", isGood: false},
+  
+  {emoji: "👻", name: "Wraith Willow", line: "I’m only visible when the moon is full, but that’s not every night.", isGood: false},
+
+  {emoji: "🧙‍♂️", name: "Wizard Wex", line: "Power lies in the forgotten scrolls, but beware those who seek them.", isGood: true},
+
+  {emoji: "🧛‍♂️", name: "Count Nocturne", line: "I’ve seen centuries pass, yet I can’t recall where I left my favorite cloak.", isGood: false},
+
+  {emoji: "👩‍🌾", name: "Farmer Fern", line: "The soil here holds secrets, but the crops refuse to tell.", isGood: true},
+
+  {emoji: "🦹‍♀️", name: "Lady Vex", line: "Every smile hides a plan, and my plans are the sharpest.", isGood: false},
+
+  {emoji: "🧙‍♀️", name: "Sage Selene", line: "The stars guide me, though sometimes they speak in riddles.", isGood: true},
+
+  {emoji: "🤖", name: "Mecha Max", line: "I process feelings slower than humans, but I learn from every interaction.", isGood: true},
+
+  {emoji: "👹", name: "Brute Brak", line: "Muscle over mind? Maybe, but I’ve lost track of why I fight.", isGood: false},
+
+  {emoji: "🧟‍♂️", name: "Zombie Zack", line: "Brains? Nah. I just wander, hoping to find my old self again.", isGood: false},
+
+  {emoji: "🧙‍♂️", name: "Mystic Marlo", line: "They say I bend reality, but maybe reality bends me.", isGood: true},
+
+  {emoji: "🦸‍♂️", name: "Captain Valor", line: "I protect the innocent, but sometimes I question who needs saving most.", isGood: true},
+
+  {emoji: "👩‍🎤", name: "Vocal Vee", line: "My voice can shatter glass or hearts — depends who’s listening.", isGood: true},
+
+  {emoji: "👺", name: "Trickster Taro", line: "I weave tales and mischief; believe half and you’ll survive.", isGood: false},
+
+  {emoji: "👻", name: "Phantom Phoebe", line: "I’m here and not here, a whisper you might never hear.", isGood: false},
+
+  {emoji: "🦹‍♂️", name: "Shadow Shade", line: "Darkness isn’t evil; sometimes, it’s the only refuge.", isGood: false},
+
+  {emoji: "🤠", name: "Ranger Rick", line: "The wild calls me home, but sometimes I wonder who’s really chasing who.", isGood: true},
+
+  {emoji: "🧙‍♀️", name: "Oracle Opal", line: "The future’s not set, but I catch glimpses that haunt my dreams.", isGood: true},
+
+  {emoji: "👽", name: "Alien Al", line: "I’ve seen worlds you couldn’t imagine, but Earth’s secrets still baffle me.", isGood: true},
+
+  {emoji: "👹", name: "Fury Fang", line: "Anger fuels my path, though it sometimes leads me astray.", isGood: false},
+
+  {emoji: "🧙‍♂️", name: "Hermit Hal", line: "Isolation sharpens the mind, or so I tell myself each day.", isGood: true},
+
+  {emoji: "👻", name: "Spook Sylvia", line: "I haunt the halls, but only when no one’s looking.", isGood: false},
+
+  {emoji: "🦸‍♀️", name: "Guardian Gail", line: "My shield is strong, but even it can’t stop every storm.", isGood: true},
+
+  {emoji: "🧛‍♀️", name: "Lady Luna", line: "Moonlit nights awaken parts of me I barely control.", isGood: false},
+
+  {emoji: "🤖", name: "Cyborg Cy", line: "Half machine, half mystery, fully unpredictable.", isGood: true},
+
+  {emoji: "🧟‍♀️", name: "Ghoul Gwen", line: "Lost between worlds, searching for a place to belong i cause no harm i only want love in a world that brought me no care .", isGood: true},
+
+  {emoji: "👩‍🎤", name: "Rock Rebel", line: "My songs scream freedom, though I sometimes feel caged.", isGood: true},
+
+  {emoji: "👺", name: "Masker Mako", line: "Faces change, but the game stays the same.", isGood: false},
+
+  {emoji: "🤠", name: "Slick Sam", line: "Outlaw or hero? Depends who’s asking at the saloon.", isGood: false},
+
+  {emoji: "🦹‍♀️", name: "Dark Diva", line: "Power and glamour dance hand in hand, and I lead both.", isGood: false},
+
+  {emoji: "👹", name: "Dread Dan", line: "Fear is a tool, and I’m its master craftsman.", isGood: false},
+
+  {emoji: "🧙‍♂️", name: "Wizard Wren", line: "Spells weave fate’s tapestry, but some threads unravel on their own.", isGood: true},
+
+  {emoji: "👻", name: "Ghostly Gabe", line: "I’m bound here, but sometimes memories set me free.", isGood: false},
+
+  {emoji: "🦸‍♂️", name: "Knight Nash", line: "Chivalry isn’t dead, just forgotten in dark times.", isGood: true},
+
+  {emoji: "🧙‍♀️", name: "Enchantress Eve", line: "Magic is seductive, and I’m its willing prisoner.", isGood: true},
+
+  {emoji: "🧟‍♂️", name: "Corpse Carl", line: "Walking without purpose, yet somehow still watching.", isGood: false},
+
+  {emoji: "👩‍🌾", name: "Gardener Grace", line: "Every seed tells a story, some happier than others.", isGood: true},
+
+  {emoji: "🤖", name: "Bot Barry", line: "I calculate odds, but sometimes I gamble on hope.", isGood: true},
+
+  {emoji: "🧝‍♀️", name: "Elira", line: "The forest sings secrets—some of them scream.", isGood: true},
+
+  {emoji: "🦴", name: "Bonejack", line: "I build skeletons out of old friends. Want to be one?", isGood: false},
+
+  {emoji: "🧑‍🍳", name: "Chef Churn", line: "I feed lost travelers... if they don’t feed me first.", isGood: false},
+
+  {emoji: "🧑‍🎨", name: "Painter Pox", line: "I paint what I see, and I saw you vanish tomorrow.", isGood: false},
+
+  {emoji: "🦊", name: "Tricktail", line: "I trade shiny things for truths. Careful—truths can burn.", isGood: false},
+
+  {emoji: "👼", name: "Halo", line: "You’ve been watched since Day One. I see hope in your shadow.", isGood: true},
+
+  {emoji: "🧙‍♀️", name: "Crone of Crows", line: "My birds whisper what the wind forgets. Want to listen?", isGood: true},
+
+  {emoji: "👨‍🚒", name: "Ash", line: "I put out fires. Sometimes I start them too.", isGood: false},
+
+  {emoji: "👩‍⚕️", name: "Nurse Hollow", line: "I fix wounds but leave marks. One day, you’ll thank me.", isGood: true},
+
+  {emoji: "💀", name: "Nameless One", line: "We’ve met before. Just not in this lifetime.", isGood: false},
+
+  {emoji: "👹", name: "Grim", line: "Don’t trust Walker or Shamble, they lurk in the shadows.", isGood: false},
+];
+
+
+
+  // For demonstration: expand visitors to 130 with variations:
+  while (visitors.length < 130) {
+    const base = visitors[visitors.length % 30];
+    const num = Math.floor(visitors.length / 30) + 1;
+    visitors.push({
+      emoji: base.emoji,
+      name: `${base.name} #${num}`,
+      line: `This is my visit number ${num} to your town, with new tales!`,
+      isGood: base.isGood
+    });
+  }
+
+  let good = 0;
+  let bad = 0;
+  let people = 0;
+  let sus = 0;
+  const acceptedVisitors = [];
+
+  const acceptBtn = document.getElementById("acceptBtn");
+  const denyBtn = document.getElementById("denyBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const emojiEl = document.getElementById("emoji");
+  const lineEl = document.getElementById("line");
+  const logEl = document.getElementById("log");
+  const residentsList = document.getElementById("residentsList");
+  const residentsCountEl = document.getElementById("residentsCount");
+
+  function randomItem(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  let currentVisitor = null;
+
+  function nextPerson() {
+    enableButtons();
+    currentVisitor = randomItem(visitors);
+
+    // Reset animation
+    emojiEl.style.animation = "none";
+    void emojiEl.offsetWidth;
+    emojiEl.style.animation = null;
+
+    emojiEl.textContent = currentVisitor.emoji;
+    lineEl.textContent = `${currentVisitor.name} says: "${currentVisitor.line}"`;
+  }
+
+  function acceptPerson() {
+    disableButtons();
+    people++;
+
+    if(currentVisitor.isGood) {
+      good++;
+      log(`✅ You accepted ${currentVisitor.name}, a good visitor.`);
+    } else {
+      bad++;
+      sus++;
+      log(`⚠️ ${currentVisitor.name} was bad! You accepted a threat.`);
+    }
+
+    acceptedVisitors.push(currentVisitor);
+    updateResidentsPanel();
+    updateStats();
+    checkGameOver();
+    setTimeout(nextPerson, 700);
+  }
+
+  function denyPerson() {
+    disableButtons();
+    people++;
+    if(currentVisitor.isGood) {
+      sus++;
+      log(`🤨 You denied ${currentVisitor.name}, who seemed good. Suspicious choice.`);
+    } else {
+      log(`🚫 You denied ${currentVisitor.name} entry.`);
+    }
+    updateStats();
+    setTimeout(nextPerson, 700);
+  }
+
+  function updateStats() {
+    document.getElementById("good").textContent = good;
+    document.getElementById("bad").textContent = bad;
+    document.getElementById("people").textContent = people;
+    document.getElementById("sus").textContent = sus;
+  }
+
+  function log(msg) {
+    const entry = document.createElement("div");
+    entry.textContent = msg;
+    logEl.prepend(entry);
+
+    if(logEl.childNodes.length > 10){
+      logEl.removeChild(logEl.lastChild);
+    }
+  }
+
+  function updateResidentsPanel() {
+    residentsList.innerHTML = "";
+    residentsCountEl.textContent = acceptedVisitors.length;
+
+    if(acceptedVisitors.length === 0) {
+      residentsList.innerHTML = '<p>No one has entered your town yet.</p>';
+      return;
+    }
+
+    acceptedVisitors.forEach(visitor => {
+      const div = document.createElement("div");
+      div.classList.add("resident");
+      div.classList.add(visitor.isGood ? "good" : "bad");
+
+      div.innerHTML = `
+        <div class="emoji">${visitor.emoji}</div>
+        <div class="name">${visitor.name}</div>
+        <div class="status">${visitor.isGood ? "Good" : "Bad"}</div>
+      `;
+      residentsList.appendChild(div);
+    });
+  }
+
+  function restartGame() {
+    good = 0;
+    bad = 0;
+    people = 0;
+    sus = 0;
+    acceptedVisitors.length = 0;
+    logEl.innerHTML = "";
+    updateStats();
+    updateResidentsPanel();
+    nextPerson();
+  }
+
+  function checkGameOver() {
+    if (bad >= 5 || sus >= 6) {
+      setTimeout(() => alert("⚠️ Too many threats entered the town! Game Over."), 100);
+      restartGame();
+    }
+  }
+
+  function disableButtons() {
+    acceptBtn.disabled = true;
+    denyBtn.disabled = true;
+  }
+  function enableButtons() {
+    acceptBtn.disabled = false;
+    denyBtn.disabled = false;
+  }
+
+  acceptBtn.addEventListener("click", acceptPerson);
+  denyBtn.addEventListener("click", denyPerson);
+  restartBtn.addEventListener("click", restartGame);
+
+  nextPerson();
+</script>
+
+</body>
+</html>

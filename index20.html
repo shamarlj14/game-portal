@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shadow Dodge - Advanced</title>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0; padding: 0;
+      background: #111;
+      font-family: Arial, sans-serif;
+      color: white;
+      user-select: none;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+    #container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+    }
+    #scoreboard {
+      flex: 1;
+      max-width: 250px;
+      background: #222;
+      border: 3px solid #fff;
+      border-radius: 12px;
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+    }
+    #scoreboard h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #ff4444;
+    }
+    #scoreboard ol {
+      padding-left: 20px;
+    }
+    #gameAreaWrapper {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #gameArea {
+      position: relative;
+      width: 400px; height: 400px;
+      background: #222;
+      border: 3px solid #fff;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    #player {
+      position: absolute;
+      width: 20px; height: 20px;
+      background: white;
+      top: 190px; left: 190px;
+      border-radius: 4px;
+    }
+    .shadow {
+      position: absolute;
+      background: black;
+      opacity: 0.85;
+      border-radius: 8px;
+    }
+    #scoreBoardText {
+      margin-top: 15px;
+      font-size: 20px;
+    }
+    #eventMsg {
+      margin-top: 15px;
+      font-size: 18px;
+      color: #ff6666;
+      min-height: 30px;
+      width: 400px;
+      text-align: center;
+      user-select: none;
+    }
+    #finalScoreDisplay {
+      margin-top: 10px;
+      font-size: 20px;
+      color: #00ffcc;
+      min-height: 24px;
+      text-align: center;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #ff4444;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      display: none;
+      user-select: none;
+    }
+    #restartBtn:hover {
+      background: #ff2222;
+    }
+    #nameInputOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 999;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    #nameInputOverlay h2 {
+      margin-bottom: 15px;
+    }
+    #nameInputOverlay input {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 15px;
+      text-align: center;
+      width: 200px;
+    }
+    #nameInputOverlay button {
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      background: #ff4444;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="scoreboard">
+    <h2>Leaderboard</h2>
+    <ol id="leaderboardList"></ol>
+    <button id="resetLeaderboardBtn" style="
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px 0;
+      font-size: 16px;
+      background: #ff4444;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    ">Reset Leaderboard</button>
+  </div>
+
+  <div id="gameAreaWrapper">
+    <div id="gameArea">
+      <div id="player"></div>
+    </div>
+    <div id="scoreBoardText">Time survived: 0.00 s</div>
+    <div id="eventMsg"></div>
+    <div id="finalScoreDisplay"></div>
+    <button id="restartBtn">Restart</button>
+  </div>
+</div>
+
+<div id="nameInputOverlay">
+  <h2>Enter Your Name</h2>
+  <input id="nameInput" type="text" placeholder="Your name" />
+  <button onclick="startGameWithName()">Start Game</button>
+</div>
+
+<script>
+  // Your full existing JS code here, unchanged, just fix if any reference issues...
+  const gameArea = document.getElementById('gameArea');
+  const player = document.getElementById('player');
+  const scoreBoardText = document.getElementById('scoreBoardText');
+  const eventMsg = document.getElementById('eventMsg');
+  const restartBtn = document.getElementById('restartBtn');
+  const leaderboardList = document.getElementById('leaderboardList');
+  const nameInputOverlay = document.getElementById('nameInputOverlay');
+  const nameInput = document.getElementById('nameInput');
+  const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+
+  const gameSize = 400;
+  const playerSize = 20;
+  let playerPos = { x: 190, y: 190 };
+  let keys = {};
+  let shadows = [];
+  let lastSpawn = 0;
+  let spawnInterval = 1500;
+  let speedMultiplier = 1;
+  let gameOver = false;
+  let startTime = 0;
+  let animationFrameId;
+  let playerName = "";
+
+  let frozen = false;
+  let freezeTimeout = null;
+  let inSpeedBurst = false;
+  let speedBurstTimeout = null;
+  const MAX_LEADERS = 10;
+
+  document.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+  document.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+
+  function createShadow() {
+    const shadow = document.createElement('div');
+    shadow.classList.add('shadow');
+    const size = Math.random() * 60 + 40;
+    shadow.style.width = size + 'px';
+    shadow.style.height = size + 'px';
+
+    const edge = Math.floor(Math.random() * 4);
+    let x, y, dx, dy;
+    switch(edge) {
+      case 0: x = Math.random() * (gameSize - size); y = -size; dx = 0; dy = 1; break;
+      case 1: x = gameSize; y = Math.random() * (gameSize - size); dx = -1; dy = 0; break;
+      case 2: x = Math.random() * (gameSize - size); y = gameSize; dx = 0; dy = -1; break;
+      case 3: x = -size; y = Math.random() * (gameSize - size); dx = 1; dy = 0; break;
+    }
+
+    shadow.style.left = x + 'px';
+    shadow.style.top = y + 'px';
+    gameArea.appendChild(shadow);
+    return { el: shadow, x, y, dx, dy, size };
+  }
+
+  function updateShadows(delta) {
+    for(let i = shadows.length - 1; i >= 0; i--) {
+      let s = shadows[i];
+      s.x += s.dx * 120 * delta * speedMultiplier;
+      s.y += s.dy * 120 * delta * speedMultiplier;
+      s.el.style.left = s.x + 'px';
+      s.el.style.top = s.y + 'px';
+      if(s.x < -s.size || s.x > gameSize || s.y < -s.size || s.y > gameSize) {
+        s.el.remove();
+        shadows.splice(i, 1);
+      }
+    }
+  }
+
+  function movePlayer(delta) {
+    if (frozen || gameOver) return;
+    let speed = 220 * delta * (inSpeedBurst ? 1.3 : 1);
+    if(keys['arrowup'] || keys['w']) playerPos.y -= speed;
+    if(keys['arrowdown'] || keys['s']) playerPos.y += speed;
+    if(keys['arrowleft'] || keys['a']) playerPos.x -= speed;
+    if(keys['arrowright'] || keys['d']) playerPos.x += speed;
+
+    playerPos.x = Math.min(Math.max(0, playerPos.x), gameSize - playerSize);
+    playerPos.y = Math.min(Math.max(0, playerPos.y), gameSize - playerSize);
+
+    player.style.left = playerPos.x + 'px';
+    player.style.top = playerPos.y + 'px';
+  }
+
+  function checkCollision() {
+    for(let s of shadows) {
+      if (
+        playerPos.x < s.x + s.size &&
+        playerPos.x + playerSize > s.x &&
+        playerPos.y < s.y + s.size &&
+        playerPos.y + playerSize > s.y
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function randomEvent() {
+    if (gameOver) return;
+    const events = [
+      () => {
+        playerPos.x = Math.random() * (gameSize - playerSize);
+        playerPos.y = Math.random() * (gameSize - playerSize);
+        player.style.left = playerPos.x + 'px';
+        player.style.top = playerPos.y + 'px';
+        showEventMsg(`Unlucky teleport to (${playerPos.x.toFixed(0)}, ${playerPos.y.toFixed(0)})!`);
+      },
+      () => {
+        frozen = true;
+        showEventMsg("Frozen for 0.5 seconds!");
+        if (freezeTimeout) clearTimeout(freezeTimeout);
+        freezeTimeout = setTimeout(() => {
+          frozen = false;
+          showEventMsg("");
+        }, 500);
+      },
+      () => {
+        if (inSpeedBurst) return;
+        inSpeedBurst = true;
+        showEventMsg("Speed burst for 3 seconds!");
+        speedMultiplier += 1.5;
+        if (speedBurstTimeout) clearTimeout(speedBurstTimeout);
+        speedBurstTimeout = setTimeout(() => {
+          speedMultiplier -= 1.5;
+          inSpeedBurst = false;
+          showEventMsg("");
+        }, 3000);
+      },
+      () => {
+        for(let i=0; i<4; i++) {
+          shadows.push(createShadow());
+        }
+        showEventMsg("Sudden shadow swarm!");
+        setTimeout(() => showEventMsg(""), 2000);
+      },
+      () => {
+        showEventMsg("...Silence...");
+        setTimeout(() => showEventMsg(""), 1500);
+      }
+    ];
+    if (Math.random() < 0.5) {
+      const eventFunc = events[Math.floor(Math.random() * events.length)];
+      eventFunc();
+    }
+  }
+
+  function showEventMsg(msg) {
+    eventMsg.textContent = msg;
+  }
+
+  function loadLeaderboard() {
+    const data = localStorage.getItem('shadowDodgeLeaderboard');
+    if (!data) return [];
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  function saveLeaderboard(leaderboard) {
+    localStorage.setItem('shadowDodgeLeaderboard', JSON.stringify(leaderboard));
+  }
+
+  function updateLeaderboard(score) {
+    let leaderboard = loadLeaderboard();
+    leaderboard.push({ score, name: playerName });
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, MAX_LEADERS);
+    saveLeaderboard(leaderboard);
+    renderLeaderboard(leaderboard);
+  }
+
+  function renderLeaderboard(leaderboard) {
+    leaderboardList.innerHTML = '';
+    leaderboard.forEach(({ score, name }, i) => {
+      const li = document.createElement('li');
+      li.textContent = `${name} — ${score.toFixed(2)} s`;
+      if(i === 0) {
+        li.style.color = "#ff4444";
+        li.style.fontWeight = "bold";
+      }
+      leaderboardList.appendChild(li);
+    });
+  }
+
+  function gameLoop(timestamp) {
+    if (!startTime) startTime = timestamp;
+    let delta = (timestamp - (gameLoop.lastTimestamp || timestamp)) / 1000;
+    gameLoop.lastTimestamp = timestamp;
+
+    if (gameOver) return;
+
+    movePlayer(delta);
+    updateShadows(delta);
+
+    if (timestamp - lastSpawn > spawnInterval) {
+      shadows.push(createShadow());
+      lastSpawn = timestamp;
+      randomEvent();
+      if (spawnInterval > 300) spawnInterval -= 50;
+      speedMultiplier += 0.03;
+    }
+
+    if (checkCollision()) {
+      endGame();
+      return;
+    }
+
+    scoreBoardText.textContent = `Time survived: ${((timestamp - startTime) / 1000).toFixed(2)} s`;
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  function endGame() {
+    gameOver = true;
+    let finalScore = (performance.now() - startTime) / 1000;
+    scoreBoardText.textContent += " — GAME OVER!";
+    const finalMsg = `${playerName}, you lasted for ${finalScore.toFixed(2)} seconds!`;
+    showEventMsg(finalMsg);
+    finalScoreDisplay.textContent = `${playerName} scored: ${finalScore.toFixed(2)} seconds`;
+    restartBtn.style.display = 'inline-block';
+    updateLeaderboard(finalScore);
+  }
+
+  restartBtn.addEventListener('click', () => {
+    finalScoreDisplay.textContent = '';
+    for(let s of shadows) s.el.remove();
+    shadows = [];
+    playerPos = { x: 190, y: 190 };
+    player.style.left = playerPos.x + 'px';
+    player.style.top = playerPos.y + 'px';
+    spawnInterval = 1500;
+    speedMultiplier = 1;
+    gameOver = false;
+    lastSpawn = 0;
+    startTime = 0;
+    frozen = false;
+    inSpeedBurst = false;
+    if (freezeTimeout) clearTimeout(freezeTimeout);
+    if (speedBurstTimeout) clearTimeout(speedBurstTimeout);
+    eventMsg.textContent = '';
+    restartBtn.style.display = 'none';
+    scoreBoardText.textContent = 'Time survived: 0.00 s';
+    animationFrameId = requestAnimationFrame(gameLoop);
+  });
+
+  function startGameWithName() {
+    const name = nameInput.value.trim();
+    if (!name) return alert("Please enter your name.");
+    playerName = name;
+    nameInputOverlay.style.display = 'none';
+    renderLeaderboard(loadLeaderboard());
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  const resetLeaderboardBtn = document.getElementById('resetLeaderboardBtn');
+  resetLeaderboardBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset the leaderboard? This cannot be undone.')) {
+      localStorage.removeItem('shadowDodgeLeaderboard');
+      leaderboardList.innerHTML = '';
+    }
+  });
+  function endGame() {
+  gameOver = true;
+  let finalScore = (performance.now() - startTime) / 1000;
+  scoreBoardText.textContent += " — GAME OVER!";
+  const finalMsg = `${playerName}, you lasted for ${finalScore.toFixed(2)} seconds!`;
+  showEventMsg(finalMsg);
+  finalScoreDisplay.textContent = `${playerName} scored: ${finalScore.toFixed(2)} seconds`;
+  
+  // Hide restart button and show name input overlay
+  restartBtn.style.display = 'none'; // Hide restart button
+  nameInput.value = "";               // Clear previous name
+  nameInputOverlay.style.display = 'flex'; // Show name input overlay again
+  
+  // Update leaderboard as usual
+  updateLeaderboard(finalScore);
+}
+ restartBtn.addEventListener('click', () => {
+  if (nameInputOverlay.style.display !== 'none') return; // Don't restart if waiting for name
+  
+  finalScoreDisplay.textContent = '';
+  for(let s of shadows) s.el.remove();
+  shadows = [];
+  playerPos = { x: 190, y: 190 };
+  player.style.left = playerPos.x + 'px';
+  player.style.top = playerPos.y + 'px';
+  spawnInterval = 1500;
+  speedMultiplier = 1;
+  gameOver = false;
+  lastSpawn = 0;
+  startTime = 0;
+  frozen = false;
+  inSpeedBurst = false;
+  if (freezeTimeout) clearTimeout(freezeTimeout);
+  if (speedBurstTimeout) clearTimeout(speedBurstTimeout);
+  eventMsg.textContent = '';
+  restartBtn.style.display = 'none';
+  scoreBoardText.textContent = 'Time survived: 0.00 s';
+  animationFrameId = requestAnimationFrame(gameLoop);
+});
+function startGameWithName() {
+  const name = nameInput.value.trim();
+  if (!name) return alert("Please enter your name.");
+  playerName = name;
+  nameInputOverlay.style.display = 'none';
+  renderLeaderboard(loadLeaderboard());
+  restartBtn.style.display = 'none';  // Hide restart at start
+  animationFrameId = requestAnimationFrame(gameLoop);
+}
+function resetGame() {
+  finalScoreDisplay.textContent = '';
+  for(let s of shadows) s.el.remove();
+  shadows = [];
+  playerPos = { x: 190, y: 190 };
+  player.style.left = playerPos.x + 'px';
+  player.style.top = playerPos.y + 'px';
+  spawnInterval = 1500;
+  speedMultiplier = 1;
+  gameOver = false;
+  lastSpawn = 0;
+  startTime = 0;
+  frozen = false;
+  inSpeedBurst = false;
+  if (freezeTimeout) clearTimeout(freezeTimeout);
+  if (speedBurstTimeout) clearTimeout(speedBurstTimeout);
+  eventMsg.textContent = '';
+  restartBtn.style.display = 'none';
+  scoreBoardText.textContent = 'Time survived: 0.00 s';
+}
+function startGameWithName() {
+  const name = nameInput.value.trim();
+  if (!name) return alert("Please enter your name.");
+  playerName = name;
+  nameInputOverlay.style.display = 'none';
+  renderLeaderboard(loadLeaderboard());
+  resetGame();
+  animationFrameId = requestAnimationFrame(gameLoop);
+}
+
+</script>
+
+</body>
+</html>

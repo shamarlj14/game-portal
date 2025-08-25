@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+      <link rel="stylesheet" href="style.css">
+   <link rel="icon" type="img2.png" href="img2.png" />
+  <meta charset="UTF-8" />
+  <title>Color Guessing Game with Scoreboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+      color: aqua;
+    }
+    #game {
+      margin-top: 40px;
+    }
+    #color-box {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+      border: 3px solid white;
+      border-radius: 12px;
+    }
+    .btn {
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: grey;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      transition: 0.3s;
+    }
+    .btn:hover:not(:disabled) {
+      background-color: #444;
+    }
+    #restart, #restart-scoreboard {
+      margin-top: 20px;
+      display: none;
+    }
+    #score {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    #message {
+      font-size: 24px;
+      margin-top: 20px;
+      color: gold;
+    }
+    #scoreboard {
+      margin: 30px auto;
+      width: 300px;
+      border: 2px solid white;
+      border-radius: 12px;
+      padding: 10px;
+      background: #111;
+      text-align: left;
+    }
+    #scoreboard h2 {
+      color: aqua;
+      margin-top: 0;
+      text-align: center;
+    }
+    #scoreboard ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    #scoreboard li {
+      padding: 4px 0;
+      border-bottom: 1px solid #333;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Guessing Game</h1>
+
+  <div id="game">
+    <div id="color-box"></div>
+    <div id="options"></div>
+    <div id="score">Score: 0</div>
+    <div id="message"></div>
+    <button id="restart" class="btn">Restart Game</button>
+    <button id="restart-scoreboard" class="btn">Restart Scoreboard</button>
+  </div>
+
+  <div id="scoreboard">
+    <h2>Scoreboard</h2>
+    <ul id="score-list">
+      <!-- Scores go here -->
+    </ul>
+  </div>
+
+  <script>
+    const colors = [
+      "red", "blue", "green", "yellow", "orange", "purple", "pink", "brown", "aqua", "lime",
+      "navy", "teal", "maroon", "gold", "silver", "coral", "crimson", "indigo", "ivory", "khaki",
+      "lavender", "magenta", "mintcream", "olive", "orangered", "plum", "salmon", "sienna", "tomato", "turquoise",
+      "darkgreen", "darkkhaki", "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darksalmon",
+      "darkred", "darksage", "darkseagreen", "darkslateblue", "darkslategray", "darkturquoise", "darkviolet",
+      "deeppink", "deepskyblue", "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro",
+      "ghostwhite", "greenyellow", "honeydew", "hotpink", "indianred", "lightblue", "lightcoral", "lightcyan",
+      "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+      "lightsteelblue", "lightyellow", "linen", "mediumaquamarine", "mediumblue", "mediumpurple", "mediumseagreen",
+      "mediumslateblue", "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mistyrose",
+      "moccasin", "navajowhite", "oldlace", "papayawhip", "peachpuff", "powderblue", "rosybrown", "seashell",
+      "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "thistle", "wheat", "whitesmoke",
+      "yellowgreen",
+    ];
+
+    const colorBox = document.getElementById('color-box');
+    const optionsDiv = document.getElementById('options');
+    const scoreText = document.getElementById('score');
+    const message = document.getElementById('message');
+    const restartBtn = document.getElementById('restart');
+    const restartScoreboardBtn = document.getElementById('restart-scoreboard');
+    const scoreList = document.getElementById('score-list');
+
+    let correctColor = '';
+    let score = 0;
+    let gameOver = false;
+
+    function shuffle(array) {
+      return array.sort(() => 0.5 - Math.random());
+    }
+
+    // Load scoreboard from localStorage
+    function loadScoreboard() {
+      const data = localStorage.getItem('colorGuessScoreboard');
+      if (!data) return [];
+      try {
+        return JSON.parse(data);
+      } catch {
+        return [];
+      }
+    }
+
+    // Save scoreboard to localStorage
+    function saveScoreboard(scores) {
+      localStorage.setItem('colorGuessScoreboard', JSON.stringify(scores));
+    }
+
+    // Display scoreboard on page
+    function displayScoreboard() {
+      const scores = loadScoreboard();
+      // Sort descending by score
+      scores.sort((a, b) => b.score - a.score);
+
+      scoreList.innerHTML = '';
+      if (scores.length === 0) {
+        scoreList.innerHTML = '<li>No scores yet.</li>';
+        return;
+      }
+      for (const entry of scores) {
+        const li = document.createElement('li');
+        li.textContent = `${entry.name}: ${entry.score}`;
+        scoreList.appendChild(li);
+      }
+    }
+
+    function startRound() {
+      optionsDiv.innerHTML = '';
+      message.textContent = '';
+      const randomColors = shuffle(colors).slice(0, 4);
+      correctColor = randomColors[Math.floor(Math.random() * 4)];
+      colorBox.style.backgroundColor = correctColor;
+
+      randomColors.forEach(color => {
+        const btn = document.createElement('button');
+        btn.classList.add('btn');
+        btn.textContent = color;
+        btn.onclick = () => checkAnswer(color);
+        btn.disabled = false;
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      if (gameOver) return;
+
+      // Disable all buttons immediately to prevent multiple clicks
+      [...optionsDiv.children].forEach(btn => btn.disabled = true);
+
+      if (selected === correctColor) {
+        score++;
+        scoreText.textContent = 'Score: ' + score;
+        // Short delay before next round for better UX
+        setTimeout(() => {
+          startRound();
+        }, 500);
+      } else {
+        message.textContent = 'Wrong! Game Over.';
+        gameOver = true;
+        restartBtn.style.display = 'inline-block';
+
+        // Ask for player name
+        let playerName = prompt("Game Over! Enter your name for the scoreboard:", "Player");
+        if (!playerName || playerName.trim() === "") playerName = "Player";
+
+        // Save score if > 0
+        if (score > 0) {
+          const scores = loadScoreboard();
+          scores.push({ name: playerName.trim(), score });
+          saveScoreboard(scores);
+          displayScoreboard();
+          restartScoreboardBtn.style.display = 'inline-block';
+        }
+      }
+    }
+
+    restartBtn.onclick = () => {
+      score = 0;
+      gameOver = false;
+      scoreText.textContent = 'Score: 0';
+      message.textContent = '';
+      restartBtn.style.display = 'none';
+      restartScoreboardBtn.style.display = 'none';
+      startRound();
+    };
+
+    restartScoreboardBtn.onclick = () => {
+      if (confirm("Are you sure you want to clear the scoreboard?")) {
+        localStorage.removeItem('colorGuessScoreboard');
+        displayScoreboard();
+        restartScoreboardBtn.style.display = 'none';
+      }
+    };
+
+    // Initialize
+    displayScoreboard();
+    startRound();
+  </script>
+</body>
+</html>

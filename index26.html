@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Vanishing the Victims </title>
+  <style>
+  body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  color: white;
+  font-family: 'Courier New', monospace;
+  overflow-x: hidden;
+  /* Added to avoid vertical scroll caused by container margin */
+  overflow-y: auto;
+}
+
+.container {
+  max-width: 800px;
+  margin: 100px auto 50px auto; /* keep top and bottom margins */
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 80vh; /* Give it some vertical space */
+}
+
+h1 {
+  text-align: center;
+  font-size: 3em;
+  margin-bottom: 30px;
+  color: crimson;
+  user-select: none;
+}
+
+/* Story text */
+.story {
+  white-space: pre-line;
+  font-size: 1.2em;
+  line-height: 1.8em;
+  animation: fadeIn 3s ease-in;
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 30px;
+  padding-right: 10px; /* for scrollbar spacing */
+  border: 1px solid crimson;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+/* Input box */
+#guess {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2em;
+  padding: 12px;
+  border-radius: 6px;
+  border: 2px solid crimson;
+  outline: none;
+  margin-bottom: 15px;
+  color: white;
+  background-color: black;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#guess::placeholder {
+  color: #ff6666;
+}
+
+/* Submit button */
+#submitBtn {
+  background-color: crimson;
+  border: none;
+  color: white;
+  font-size: 1.3em;
+  padding: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+#submitBtn:hover:not(:disabled) {
+  background-color: #aa0000;
+}
+
+#submitBtn:disabled {
+  background-color: #440000;
+  cursor: not-allowed;
+}
+
+/* Result message */
+#result {
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 1.2em;
+  min-height: 32px;
+  color: #ff6666;
+  user-select: none;
+  text-align: center;
+}
+
+/* Typewriter animation for header */
+.typewriter {
+  border-right: 2px solid crimson;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: typing 6s steps(60) 1, blink 0.8s step-end infinite;
+  width: fit-content;
+  margin: 0 auto 30px auto;
+  user-select: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+/* Hide audio controls */
+audio {
+  display: none;
+}
+
+  </style>
+</head>
+<body>
+  <audio autoplay loop>
+    <source src="https://cdn.pixabay.com/audio/2021/10/26/audio_a4d7e85ec5.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="container">
+    <h1 class="typewriter">The Vanishing of  the  Victims</h1>
+    <div class="story" id="story"></div>
+
+    <input type="text" id="guess" placeholder="Enter killer's name" autocomplete="off" />
+    <button id="submitBtn">Submit</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const storyDiv = document.getElementById("story");
+    const guessInput = document.getElementById("guess");
+    const submitBtn = document.getElementById("submitBtn");
+    const resultDiv = document.getElementById("result");
+
+    let current = 0;
+const stories = [
+ 
+  {
+    title: "The Blood Moon Murders",
+    text: "Salem, Massachusetts – 1989.\n\nEach full moon, a new victim was found stabbed and marked with strange symbols. The town whispered about a lone figure roaming the streets. The killer is unknown.",
+    killer: "unknown",
+    isReal: false
+  },
+  {
+    title: "The Alleyway Butcher",
+    text: "New York City, New York – 1978.\n\nSeveral women were brutally murdered in lower Manhattan alleyways. Some say David Berkowitz was seen lurking in the shadows, knife in hand.",
+    killer: "David Berkowitz",
+    isReal: true
+  },
+  {
+    title: "The Frozen Symphony",
+    text: "Anchorage, Alaska – 2003.\n\nA musician was found strangled, frozen in the snow beside a violin case. Witnesses whispered that Dorian Voss had been seen playing at midnight near the scene.",
+    killer: "Dorian Voss",
+    isReal: false
+  },
+  {
+    title: "The Carnival of Blood",
+    text: "Los Angeles, California – 2002.\n\nVisitors to a traveling carnival were found stabbed after a night of chaos. Marcellus Crowe was rumored to roam the carnival grounds during the murders.",
+    killer: "Marcellus Crowe",
+    isReal: false
+  },
+  {
+    title: "The Lighthouse Slayings",
+    text: "Martha’s Vineyard, Massachusetts – 1992.\n\nThe lighthouse keeper was found murdered in his home. Letters predicting deaths were scattered nearby. Selene Marlow was last seen near the lighthouse before the killings.",
+    killer: "Selene Marlow",
+    isReal: false
+  },
+
+
+
+
+  
+ {
+    title: "The Blood Moon Murders",
+    text: "Salem, Massachusetts – 1989.\n\nEach full moon, a new victim was found drained of blood and marked with strange symbols carved into their skin. The streets would go silent as shadows lengthened, and neighbors whispered about a figure who watched from the rooftops. Candles were found at every crime scene, burning down to blackened stubs. Some claimed to have glimpsed the killer moving between rooftops like a specter. Others swore that he hummed a haunting tune just before dawn. The local priest spoke of evil incarnate lurking in Salem, unseen but present. The killer is unknown.",
+    killer: "unknown",
+    isReal: false
+  },
+  {
+    title: "The Alleyway Butcher",
+    text: "New York City, New York – 1978.\n\nSeveral young women were brutally murdered in dimly lit alleyways, each body displayed as if part of a grotesque art installation. Witnesses reported seeing a pale man with wild eyes lurking in the shadows, dragging knives that gleamed under the flickering streetlights. Sliced letters were found carved into the walls near each victim, spelling cryptic warnings in blood. Some say David Berkowitz whispered threats before disappearing into the misty night, always leaving the city in fear. The authorities were baffled, unable to connect the killings until the pattern became chillingly clear. Residents locked their doors at dusk, haunted by the echo of footsteps that never belonged. The police never caught him, and the fear remained in every alley. ",
+    killer: "David Berkowitz",
+    isReal: true
+  },
+  {
+    title: "The Dollmaker Slayings",
+    text: "Columbus, Ohio – 1996.\n\nA toy maker was found dead in his workshop, surrounded by dolls with their eyes crudely stitched shut. The dolls were arranged in positions that mimicked the final moments of the victims’ struggles, each holding a note with cryptic messages. Some locals whispered that Sylvia Merton had been obsessively tending to the dolls for weeks before the murders. Her reflection was reportedly seen in the glass of the doll eyes late at night, as if she were speaking to them. Odd lullabies were heard from the empty streets, echoing from the abandoned workshop. The stench of oil and wax lingered long after the police left, a silent reminder of the horrors within. Fear gripped the neighborhood for months, knowing the killer had walked among them. ",
+    killer: "Sylvia Merton",
+    isReal: false
+  },
+  {
+    title: "The Lighthouse Keeper Murders",
+    text: "Martha’s Vineyard, Massachusetts – 1992.\n\nThe lighthouse keeper was found impaled at the top of the spiral staircase, his journal open to pages detailing visions of death. Letters predicting storms and the deaths of nearby townsfolk were scattered across the floor, soaked with saltwater and ink. Locals swore that Selene Marlow was seen walking along the cliffs at night, whispering names into the wind as if commanding the sea itself. The keeper’s lantern had been smashed, and its shards reflected eerie patterns of crimson on the walls. No footprints led away from the scene, only faint echoes of desperate cries. A sense of malevolent presence lingered, as if the walls themselves mourned the slain. Even years later, boats avoided the lighthouse, afraid of the unseen hand that struck once more. ",
+    killer: "Selene Marlow",
+    isReal: false
+  },
+  {
+    title: "The Carnival of Blood",
+    text: "Los Angeles, California – 2002.\n\nVisitors to a traveling carnival were found brutally stabbed in the tents and funhouses, each death more gruesome than the last. Blood streaks lined the mirrors and walls, forming patterns that some said spelled warnings in an unearthly script. Marcellus Crowe was rumored to roam the carnival grounds during the murders, his presence felt as a cold chill brushing past without a sound. Survivors claimed to hear faint whispers of laughter as they fled, voices that were not human. The rides operated on their own, turning endlessly through the foggy night. Oddly, the carnival would vanish before sunrise, leaving no trace except the corpses and the lingering scent of fear. Some theorized that the killer drew power from the screams of the living, feeding off terror before striking again. ",
+    killer: "Marcellus Crowe",
+    isReal: false
+  },
+
+ {
+    title: "The Whispering Hall Murders",
+    text: "Boston, Massachusetts – 1980.\n\nStudents in the old university halls reported whispers at night calling out names. Soon, bodies appeared in the corridors, their faces frozen in terror. Scratch marks spelled cryptic warnings across the walls, and Roland Vey was rumored to linger silently in the shadows. Candles were left burning at each crime scene, casting flickering, unnatural shapes. Doors slammed without wind, and cold drafts followed anyone entering the hall. Some claimed the walls themselves seemed alive, breathing over the victims' bodies. By semester's end, fear had driven all students away, leaving only echoes of Roland’s presence.",
+    killer: "Roland Vey",
+    isReal: false
+  },
+  {
+    title: "The Painted Victims",
+    text: "Savannah, Georgia – 2005.\n\nStrangers' portraits appeared on abandoned walls, and soon after, the depicted individuals were found murdered. Camille Devereux was said to linger near her murals, speaking softly to the painted faces. The paint seemed to glisten with a strange, wet sheen, almost like blood. Each crime scene contained faint brush strokes left behind in the victims’ rooms, connecting them to the sinister artist. Local children claimed the painted eyes followed them at night, watching silently. Authorities found no fingerprints, but whispers persisted of Camille’s silhouette moving between walls. Fear spread through the streets like wildfire, each resident wondering who would be next.",
+    killer: "Camille Devereux",
+    isReal: false
+  },
+  {
+    title: "The Frozen Symphony",
+    text: "Anchorage, Alaska – 2003.\n\nA music teacher was found strangled outside, perfectly posed beside a frozen violin. Notes from the instrument spelled cryptic warnings, almost as if Dorian Voss had composed a final symphony of death. Residents heard eerie melodies drifting through empty streets, though no musician was present. Snow fell unnaturally heavy, muffling screams that might have been heard. Some claimed Dorian’s shadow lingered at the edges of their vision, vanishing when approached. Doors left open closed violently on their own, and chilling drafts followed anyone passing the school. The town remained haunted by silent violins and whispers of the killer’s tune.",
+    killer: "Dorian Voss",
+    isReal: false
+  },
+  {
+    title: "The Lighthouse Letters",
+    text: "Martha’s Vineyard, Massachusetts – 1992.\n\nThe lighthouse keeper was found stabbed at his desk, letters predicting deaths scattered on the floor. Selene Marlow was seen walking the cliffside at night, murmuring names into the wind. The lantern atop the lighthouse had been smashed, shards embedded into the wood as if marking victims. Sailors reported eerie lights flickering across the bay, guiding no one home. Blood ran down the spiral staircase, pooling in patterns that resembled waves. A sense of a malevolent presence lingered in the fog, thick enough to choke. Even years later, residents avoided the lighthouse, fearing the next victim of Selene’s cryptic warnings.",
+    killer: "Selene Marlow",
+    isReal: false
+  },
+  {
+    title: "The Rusted Carousel",
+    text: "Coney Island, New York – 1977.\n\nA carousel ran on its own late at night, and visitors who stayed too long were found impaled with twisted metal from the ride. Percival Knight was seen slipping between the shadows, whispering lullabies to the frightened souls. Blood glistened on the horses’ eyes, and the mirrors reflected faces not there. Patrons who tried to leave found themselves back at the carousel, as if drawn by unseen hands. The operator’s booth contained cryptic notes scrawled in a trembling hand. Children spoke of laughter echoing from empty streets. The carnival vanished at dawn, leaving only screams embedded in the boards.",
+    killer: "Percival Knight",
+    isReal: false
+  },
+  {
+    title: "The Vanishing Streetlights Murders",
+    text: "Seattle, Washington – 1993.\n\nStreetlights disappeared, and anyone walking beneath the darkness was later found murdered. Matilda Graves was rumored to walk along the last remaining light, her shadow dancing on the walls. Witnesses described chilling laughter that echoed down empty streets. Blood stains appeared on the pavement with no discernible source. Doors would slam shut by themselves, trapping the living inside their homes. Pets refused to enter certain alleys, growling at unseen figures. The city lived in terror, never knowing which shadow would be next.",
+    killer: "Matilda Graves",
+    isReal: false
+  },
+  {
+    title: "The Silent Train Station",
+    text: "Kansas City, Missouri – 1969.\n\nPassengers vanished from the midnight train, leaving behind only bloodied footprints fading into thin air. Theresa Lorne was seen pacing the platforms, muttering the victims’ names. Whispers filled the station, and lanterns swung violently despite no wind. Suitcases were discovered filled with cryptic notes and personal belongings, soaked with crimson stains. A train whistle blew at midnight, but no train existed. Witnesses reported fleeting shadows, watching from the darkness. Each disappearance deepened the terror that clung to the deserted rails.",
+    killer: "Theresa Lorne",
+    isReal: false
+  },
+  {
+    title: "The Clockmaker's Curse",
+    text: "Philadelphia, Pennsylvania – 1999.\n\nThose wearing a certain backwards-ticking watch were found dead at exactly midnight, their faces frozen in silent screams. Alaric Thorn was seen repairing the cursed timepieces in his workshop late into the night. Clocks ticked irregularly, echoing through empty streets. Neighbors reported shadows moving across walls in impossible ways. Tiny notes were found inside the watches, spelling warnings in blood-red ink. Every chime carried a chilling message, counting down to the next death. The city shivered under the weight of the unseen killer’s obsession with time.",
+    killer: "Alaric Thorn",
+    isReal: false
+  },
+  {
+    title: "The Phantom Circus",
+    text: "Chicago, Illinois – 1970.\n\nAttendees to a traveling circus were found murdered one by one, leaving behind only empty tickets. Orson Blackwood was seen wandering the tents at night, speaking to no one, eyes wild with a manic gleam. Animals were absent, replaced by bloodied mannequins. The scent of iron lingered in the air, mixing with the sweet smell of cotton candy. Survivors claimed to hear faint laughter as they escaped, though no performer was visible. Lights flickered violently, creating grotesque shadows that seemed to move independently. The circus vanished before dawn, leaving terror in its wake.",
+    killer: "Orson Blackwood",
+    isReal: false
+  },
+  {
+    title: "The Choir of Dolls",
+    text: "Cleveland, Ohio – 1983.\n\nDolls began singing at night, each voice eerily human. Children were later found murdered, and the dolls sat silently in their bedrooms, smiling. Evangeline Crow was rumored to have spoken to the dolls in whispers no one else could hear. The walls were marked with tiny handprints smeared in crimson. Parents reported hearing footsteps creeping along empty halls. Odd lullabies echoed in abandoned classrooms. The town was paralyzed with fear, never knowing which house the dolls would visit next.",
+    killer: "Evangeline Crow",
+    isReal: false
+  },
+  {
+    title: "The Smoke Signals",
+    text: "Denver, Colorado – 1997.\n\nStrange smoke appeared in the sky, spelling ominous messages. Those who investigated were found murdered hours later. Tobias Flint was said to light the signals, each puff of smoke carrying warnings of death. Witnesses reported shadows moving unnaturally near the messages. The burned notes smelled of iron and ash. Pets refused to approach the signal areas, growling at invisible shapes. The city slept uneasily, fearing the next signal could call them.",
+    killer: "Tobias Flint",
+    isReal: false
+  },
+  {
+    title: "The Vanishing Pond Murders",
+    text: "Madison, Wisconsin – 1981.\n\nA pond disappeared overnight, and bodies were found along its muddy edge, drained of life. Helena Frost was seen carving names into nearby trees, whispering incantations over the water. Footprints led nowhere, and the reflection of the victims lingered long after their deaths. Locals reported hearing splashes in the dead pond when no water existed. Strange odors of damp earth and decay filled the air. A sense of malevolence pressed down on anyone approaching the site. The town never returned to normal, haunted by the vanished water and its grim secrets.",
+    killer: "Helena Frost",
+    isReal: false
+  },
+  {
+    title: "The Frozen Alley Murders",
+    text: "Chicago, Illinois – 1984.\n\nBodies appeared frozen in narrow alleys, eyes wide with frozen terror. Witnesses said Dorian Voss had been playing a violin while the murders occurred. Shadows twisted unnaturally in the icy streets. Residents reported hearing faint wailing when the wind blew, though no one was there. Letters written in ice were found near each corpse. Footsteps echoed, but no one was visible. The city was paralyzed with fear, avoiding the alleys after dusk.",
+    killer: "Dorian Voss",
+    isReal: false
+  },
+  {
+    title: "The Alley of Screams",
+    text: "New York City, New York – 1982.\n\nWomen were found bludgeoned in a narrow alley, faces twisted in silent screams. David Berkowitz was seen standing in the mist, knife dripping crimson. Blood pooled in patterns across the bricks, forming cryptic symbols. Streetlights flickered erratically, casting shadows that seemed alive. Passersby reported hearing faint whispers and cries. The alley became forbidden, avoided by all who valued life. Fear spread citywide, gripping even the bravest hearts.",
+    killer: "David Berkowitz",
+    isReal: true
+  },
+  {
+    title: "The Carnival Shadows",
+    text: "Los Angeles, California – 2003.\n\nVisitors to a carnival were found stabbed, rides spinning without wind or riders. Marcellus Crowe was said to move between the shadows, whispering threats no one else could hear. The scent of blood and popcorn mingled unnaturally. Mirrors reflected faces not present in reality. Survivors spoke of unseen hands pushing them toward danger. Cryptic notes were left on the canvas walls. Dawn never brought relief, only the lingering presence of terror.",
+    killer: "Marcellus Crowe",
+    isReal: false
+  },
+  {
+    title: "The Lighthouse Horror",
+    text: "Martha’s Vineyard, Massachusetts – 1993.\n\nThe keeper was impaled atop the lighthouse, journal pages predicting deaths scattered below. Selene Marlow was seen walking the cliffside, whispering over the waves. Lanterns shattered, and strange lights danced across the bay. Blood formed unnatural patterns on the stairs. Sailors refused the harbor, fearing the killer’s unseen gaze. Shadows twisted around every corner. Even years later, no one approached the lighthouse after dusk.",
+    killer: "Selene Marlow",
+    isReal: false
+  }, 
+
+];
+
+  
+
+
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function showStory() {
+      storyDiv.style.opacity = '0';
+      setTimeout(() => {
+        storyDiv.textContent = stories[current].text;
+        guessInput.value = "";
+        guessInput.disabled = false;
+        submitBtn.disabled = false;
+        resultDiv.textContent = "";
+        guessInput.focus();
+        storyDiv.style.opacity = '1';
+      }, 300);
+    }
+
+    function checkAnswer() {
+      const guess = guessInput.value.trim().toLowerCase();
+      const killer = stories[current].killer.toLowerCase();
+      const isReal = stories[current].isReal;
+
+      if (!guess) {
+        resultDiv.textContent = "Please enter a guess.";
+        return;
+      }
+
+      if (guess === killer) {
+        resultDiv.style.color = "#aaffaa";
+        resultDiv.textContent = "✅ Correct! Moving to next case...";
+        guessInput.disabled = true;
+        submitBtn.disabled = true;
+        current++;
+        if (current < stories.length) {
+          setTimeout(showStory, 2500);
+        } else {
+          setTimeout(() => {
+            storyDiv.textContent = "🕵️‍♂️ You’ve completed all the cases.";
+            guessInput.style.display = "none";
+            submitBtn.style.display = "none";
+            resultDiv.textContent = "";
+          }, 2500);
+        }
+      } else {
+        resultDiv.style.color = "#ffbbbb";
+        resultDiv.textContent = `❌ Incorrect. The killer was: ${stories[current].killer}. This was ${isReal ? "a REAL case." : "completely made up."}`;
+        guessInput.disabled = true;
+        submitBtn.disabled = true;
+        setTimeout(() => {
+          current++;
+          if (current < stories.length) {
+            showStory();
+          } else {
+            storyDiv.textContent = "🕵️‍♂️ You’ve completed all the cases.";
+            guessInput.style.display = "none";
+            submitBtn.style.display = "none";
+            resultDiv.textContent = "";
+          }
+        }, 6000);
+      }
+    }
+
+    submitBtn.addEventListener("click", checkAnswer);
+    guessInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") checkAnswer();
+    });
+
+    shuffleArray(stories);
+    showStory();
+  </script>
+</body>
+</html>

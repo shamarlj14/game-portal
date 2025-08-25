@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Football Dodge Game</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Russo One', sans-serif;
+    background: #004400;
+    color: #fff;
+    text-align: center;
+    user-select: none;
+  }
+  h1 {
+    margin-top: 20px;
+    font-size: 3rem;
+    text-shadow: 0 0 8px #00ff00;
+  }
+
+  #game {
+    max-width: 980px;
+    margin: 20px auto 60px;
+    background: #013220;
+    border-radius: 15px;
+    padding: 20px 30px 30px;
+    box-shadow: 0 0 30px #00cc44;
+    position: relative;
+  }
+
+  /* Team select container */
+  #teamSelectContainer {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .team-option {
+    cursor: pointer;
+    background: #005500;
+    border-radius: 15px;
+    box-shadow: 0 0 15px #00ff00 inset;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    min-width: 140px;
+    user-select: none;
+    transition: background 0.3s ease;
+    border: 3px solid transparent;
+  }
+  .team-option:hover {
+    background: #008800;
+  }
+  .team-option.selected {
+    border-color: #00ff00;
+    background: #009900;
+    box-shadow: 0 0 30px #00ff00 inset;
+  }
+  .team-logo {
+    width: 36px;
+    height: 36px;
+    margin-right: 12px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 2px #00ff00);
+  }
+  .team-name {
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: #aaffaa;
+    text-shadow: 0 0 8px #00ff00;
+  }
+
+  #startBtn {
+    display: block;
+    margin: 30px auto 0;
+    font-size: 1.6rem;
+    padding: 14px 60px;
+    border-radius: 20px;
+    background: #00aa00;
+    color: #d0ffd0;
+    font-weight: 900;
+    cursor: not-allowed;
+    border: none;
+    box-shadow: 0 0 25px #00ff00 inset;
+    user-select: none;
+    transition: background 0.3s ease;
+  }
+  #startBtn.enabled {
+    cursor: pointer;
+    background: #00cc00;
+    box-shadow: 0 0 40px #00ff00 inset;
+  }
+  #startBtn.enabled:hover {
+    background: #00ff00;
+    color: #fff;
+  }
+#restartBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;  /* Blue */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+  display: none;  /* hidden by default */
+}
+
+#restartBtn:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+#restartBtn:active {
+  background-color: #003f7f; /* Even darker on click */
+}
+
+  /* Football Field */
+  #field {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    background: linear-gradient(to top, #0a5800 0%, #2a8b00 100%);
+    border: 8px solid #fff;
+    border-radius: 20px;
+    margin: 20px 0 10px 0;
+    box-shadow: inset 0 0 20px #0f0;
+  }
+
+  /* End zones */
+  #endzone-left, #endzone-right {
+    position: absolute;
+    top: 0;
+    width: 60px;
+    height: 100%;
+    background: linear-gradient(to bottom, #004400, #006600);
+    border: 3px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.4rem;
+    color: #fff;
+    text-shadow: 0 0 6px #00ff00;
+    user-select: none;
+  }
+  #endzone-left {
+    left: 0;
+    border-radius: 15px 0 0 15px;
+  }
+  #endzone-right {
+    right: 0;
+    border-radius: 0 15px 15px 0;
+  }
+
+  /* Yard lines horizontal */
+  .yard-line {
+    position: absolute;
+    left: 60px;
+    width: calc(100% - 120px);
+    height: 2px;
+    background: #fff;
+    opacity: 0.35;
+  }
+
+  /* Yard numbers horizontal across top */
+  #yardNumbersContainer {
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 5px;
+  }
+  .yard-number-horizontal {
+    position: absolute;
+    top: 0;
+    font-size: 1.3rem;
+    color: #fff;
+    user-select: none;
+    text-shadow: 0 0 4px #00ff00;
+    font-weight: 700;
+  }
+
+  /* Ball position marker */
+  #ballMarker {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    background: black;
+    border: 2px solid #00ff00;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px #00ff00;
+    pointer-events: none;
+  }
+
+  /* Teams & score area */
+  #scoreboard {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    background: #002200;
+    border-radius: 15px;
+    padding: 15px 30px;
+    font-size: 1.8rem;
+    box-shadow: 0 0 25px #00ff00 inset;
+    position: relative;
+    user-select: none;
+  }
+  #scoreboard > div {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #scoreboard strong {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #aaffaa;
+    text-shadow: 0 0 8px #00ff00;
+  }
+  .score-value {
+    font-weight: 900;
+    font-size: 3.2rem;
+    color: #00ff00;
+    text-shadow: 0 0 20px #00ff00;
+    transition: transform 0.3s ease;
+  }
+  .score-pop {
+    animation: popScore 0.5s ease forwards;
+  }
+  @keyframes popScore {
+    0% { transform: scale(1); color: #00ff00; }
+    50% { transform: scale(1.6) rotate(10deg); color: #aaffaa; }
+    100% { transform: scale(1) rotate(0deg); color: #00ff00; }
+  }
+  .score-team-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px #00ff00);
+  }
+
+  /* Play selectors container */
+  #playSelectors {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .play-group {
+    background: #004411;
+    padding: 15px 25px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #00ff00 inset;
+    width: 40%;
+    min-width: 280px;
+  }
+  .play-group h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-shadow: 0 0 6px #0f0;
+  }
+  select, button {
+    font-size: 1.2rem;
+    padding: 12px;
+    width: 100%;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #009900;
+    color: #d0ffd0;
+    font-weight: 800;
+    box-shadow: 0 0 20px #00ff00 inset;
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  select:hover:not(:disabled), button:hover:not(:disabled) {
+    background: #00cc00;
+    color: #fff;
+  }
+  button:disabled, select:disabled {
+    background: #003300;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Log area */
+  #log {
+    margin-top: 20px;
+    background: #002200;
+    min-height: 150px;
+    border-radius: 15px;
+    padding: 15px 25px;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 20px #00aa00;
+    text-align: left;
+    white-space: pre-wrap;
+    user-select: text;
+  }
+
+  /* Down and distance */
+  #downDistance {
+    margin-top: 15px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-shadow: 0 0 6px #0f0;
+  }
+
+  /* Timer */
+  #timer {
+    font-size: 2.3rem;
+    font-weight: 900;
+    color: #00ff00;
+    margin: 15px 0 5px 0;
+    text-shadow: 0 0 15px #0f0;
+    user-select: none;
+  }
+
+  /* Footer message */
+  footer {
+    margin-top: 25px;
+    font-size: 1rem;
+    color: #004400;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+  <h1>Football Dodge Game</h1>
+  <div id="game">
+    <div id="teamSelectContainer"></div>
+    <button id="startBtn" disabled>Start Game</button>
+
+    <div id="field" style="display:none;">
+      <div id="endzone-left">ENDZONE</div>
+      <div id="endzone-right">ENDZONE</div>
+      <!-- Yard lines -->
+    </div>
+    <div id="yardNumbersContainer" style="display:none;"></div>
+
+    <div id="scoreboard" style="display:none;">
+      <div id="playerScoreboard">
+        <img id="playerTeamLogo" class="score-team-logo" src="" alt="Player Team Logo">
+        <strong id="playerTeamName"></strong>
+        <span class="score-value" id="playerScore">0</span>
+      </div>
+      <div id="enemyScoreboard">
+        <img id="enemyTeamLogo" class="score-team-logo" src="" alt="Enemy Team Logo">
+        <strong id="enemyTeamName"></strong>
+        <span class="score-value" id="enemyScore">0</span>
+      </div>
+    </div>
+
+    <div id="playSelectors" style="display:none;">
+      <div class="play-group">
+        <h3>Offense Plays</h3>
+        <select id="offensePlay" disabled>
+          <option>Run</option>
+          <option>Short Pass</option>
+          <option>Deep Pass</option>
+          <option>Trick Play</option>
+        </select>
+      </div>
+      <div class="play-group">
+        <h3>Defense Plays</h3>
+        <select id="defensePlay" disabled>
+          <option>Blitz</option>
+          <option>Zone</option>
+          <option>Man</option>
+          <option>Safe</option>
+        </select>
+      </div>
+    </div>
+    <button id="callPlayBtn" style="display:none;" disabled>Call Play</button>
+
+    <div id="downDistance" style="display:none;"></div>
+    <div id="timer" style="display:none;"></div>
+    <div id="log"></div>
+  </div>
+<button id="restartBtn" style="display:none; margin-top:10px;">Restart Game</button>
+
+<script>
+const teams = [
+  { name: "Sharks", logo: "https://i.ibb.co/XYR7YCs/shark-logo.png" },
+  { name: "Wolves", logo: "https://i.ibb.co/k2F2kLk/wolf-logo.png" },
+  { name: "Tigers", logo: "https://i.ibb.co/2kZr4vL/tiger-logo.png" },
+  { name: "Dragons", logo: "https://i.ibb.co/8KXK6rF/dragon-logo.png" },
+  { name: "Eagles", logo: "https://i.ibb.co/zs0HjNs/eagle-logo.png" },
+  { name: "Bulls", logo: "https://i.ibb.co/Vxp67zZ/bull-logo.png" },
+  { name: "Scorpions", logo: "https://i.ibb.co/your-scorpion-logo.png" }
+];
+
+const teamSelectContainer = document.getElementById("teamSelectContainer");
+const startBtn = document.getElementById("startBtn");
+const field = document.getElementById("field");
+const yardNumbersContainer = document.getElementById("yardNumbersContainer");
+const playerTeamLogo = document.getElementById("playerTeamLogo");
+const enemyTeamLogo = document.getElementById("enemyTeamLogo");
+const playerTeamNameElem = document.getElementById("playerTeamName");
+const enemyTeamNameElem = document.getElementById("enemyTeamName");
+const playerScoreElem = document.getElementById("playerScore");
+const enemyScoreElem = document.getElementById("enemyScore");
+const offenseSelect = document.getElementById("offensePlay");
+const defenseSelect = document.getElementById("defensePlay");
+const callPlayBtn = document.getElementById("callPlayBtn");
+const downDistance = document.getElementById("downDistance");
+const timerDisplay = document.getElementById("timer");
+const logElem = document.getElementById("log");
+
+const scoreboard = document.getElementById("scoreboard");
+const playSelectors = document.getElementById("playSelectors");
+
+let selectedTeamIndex = null;
+let playerTeam = null;
+let enemyTeam = null;
+let playerScore = 0;
+let enemyScore = 0;
+let currentDown = 1;
+let yardsToGo = 10;
+let ballOn = 20;
+let timeLeft = 300;
+
+let timerInterval = null;
+let driveActive = true;
+let playerOnOffense = true;
+
+function createVerticalYardLines(){
+  field.querySelectorAll('.yard-line').forEach(el=>el.remove());
+  yardNumbersContainer.innerHTML = "";
+
+  const fieldWidth = field.clientWidth;
+  for(let y=10; y<=90; y+=10){
+    const line = document.createElement('div');
+    line.className = 'yard-line';
+    const percent = y;
+    line.style.top = "0";
+    line.style.left = `calc(60px + ${(percent / 100) * (fieldWidth - 120)}px)`;
+    line.style.height = "100%";
+    line.style.width = "2px";
+    field.appendChild(line);
+
+    const num = document.createElement('div');
+    num.className = 'yard-number-horizontal';
+    num.textContent = y;
+    num.style.left = `calc(60px + ${(percent / 100) * (fieldWidth - 120)}px)`;
+    yardNumbersContainer.appendChild(num);
+  }
+}
+
+function selectTeam(i) {
+  selectedTeamIndex = i;
+  [...teamSelectContainer.children].forEach((c, idx) => {
+    c.classList.toggle("selected", idx === i);
+  });
+  startBtn.disabled = false;
+  startBtn.classList.add('enabled');
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+}
+
+function updateScoreboard(){
+  playerScoreElem.textContent = playerScore;
+  enemyScoreElem.textContent = enemyScore;
+  playerTeamNameElem.textContent = playerTeam.name;
+  enemyTeamNameElem.textContent = enemyTeam.name;
+  playerTeamLogo.src = playerTeam.logo;
+  playerTeamLogo.alt = playerTeam.name + " logo";
+  enemyTeamLogo.src = enemyTeam.logo;
+  enemyTeamLogo.alt = enemyTeam.name + " logo";
+  playerScoreElem.classList.add("score-pop");
+  enemyScoreElem.classList.add("score-pop");
+  setTimeout(() => {
+    playerScoreElem.classList.remove("score-pop");
+    enemyScoreElem.classList.remove("score-pop");
+  }, 500);
+}
+
+function updateDownDistance(){
+  downDistance.textContent = `Down: ${currentDown} | Yards to Go: ${yardsToGo} | Ball on: ${ballOn} yard`;
+}
+
+function updateBallMarker(){
+  const fieldWidth = field.clientWidth;
+  const usableWidth = fieldWidth - 120;
+  const pos = 60 + (ballOn / 100) * usableWidth;
+  let ballMarker = document.getElementById("ballMarker");
+  if(!ballMarker){
+    ballMarker = document.createElement("div");
+    ballMarker.id = "ballMarker";
+    field.appendChild(ballMarker);
+  }
+  ballMarker.style.left = pos + "px";
+}
+
+function addLog(text, color="#fff"){
+  const timeStr = new Date().toLocaleTimeString();
+  const span = document.createElement("span");
+  span.textContent = `[${timeStr}] ${text}`;
+  span.style.color = color;
+  logElem.appendChild(span);
+  logElem.appendChild(document.createElement("br"));
+  logElem.scrollTop = logElem.scrollHeight;
+}
+
+function startGame(){
+  playerTeam = teams[selectedTeamIndex];
+  let enemyIndex;
+  do {
+    enemyIndex = Math.floor(Math.random() * teams.length);
+  } while(enemyIndex === selectedTeamIndex);
+  enemyTeam = teams[enemyIndex];
+
+  playerScore = 0;
+  enemyScore = 0;
+  currentDown = 1;
+  yardsToGo = 10;
+  ballOn = 20;
+  timeLeft = 300;
+  driveActive = true;
+  playerOnOffense = true;
+
+  updateScoreboard();
+  updateDownDistance();
+  updateBallMarker();
+
+  teamSelectContainer.style.display = "none";
+  startBtn.style.display = "none";
+  field.style.display = "block";
+  yardNumbersContainer.style.display = "block";
+  scoreboard.style.display = "flex";
+  playSelectors.style.display = "flex";
+  callPlayBtn.style.display = "inline-block";
+  downDistance.style.display = "block";
+  timerDisplay.style.display = "block";
+  logElem.textContent = "";
+
+  offenseSelect.disabled = !playerOnOffense;
+  defenseSelect.disabled = playerOnOffense;
+  callPlayBtn.disabled = false;
+
+  createVerticalYardLines();
+
+  addLog(`🏈 Game started! Your team: ${playerTeam.name}. Opponent: ${enemyTeam.name}.`);
+  addLog(`You start on offense. Choose your play and call it!`);
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.textContent = `Time Left: ${formatTime(timeLeft)}`;
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+      driveActive = false;
+      callPlayBtn.disabled = true;
+      offenseSelect.disabled = true;
+      defenseSelect.disabled = true;
+      addLog("⏰ Time's up! Game Over.", "#ff5500");
+      declareWinner();
+    }
+  }, 1000);
+}
+
+function declareWinner() {
+  if(playerScore > enemyScore) {
+    addLog("🏆 YOU WIN! Congratulations!", "#00ff00");
+    alert("🏆 YOU WIN! Congratulations!");
+  } else if (playerScore < enemyScore) {
+    addLog("💀 YOU LOSE! Better luck next time!", "#ff4444");
+    alert("💀 YOU LOSE! Better luck next time!");
+  } else {
+    addLog("🤝 It's a tie!", "#ffaa00");
+    alert("🤝 It's a tie!");
+  }
+}
+
+function switchPossession(){
+  playerOnOffense = !playerOnOffense;
+  currentDown = 1;
+  yardsToGo = 10;
+  ballOn = 20;
+  addLog(playerOnOffense ? "🏈 Your team has the ball now on offense." : "🏈 Opponent has the ball now on offense.");
+  offenseSelect.disabled = !playerOnOffense;
+  defenseSelect.disabled = playerOnOffense;
+  callPlayBtn.disabled = false;
+  updateDownDistance();
+  updateBallMarker();
+  updateScoreboard();
+}
+
+function simulatePlay(){
+  if(!driveActive) return;
+
+  let resultType = "";
+  let yardsGained = 0;
+  const rand = Math.random();
+
+  const botHardScoreChance = Math.random();
+
+  if(playerOnOffense){
+    let forcedYards = 0;
+    if(currentDown === 4 && ballOn >= 85){
+      forcedYards = 3;
+      addLog("⚠️ 4th down close to goal line, automatically going for 3-yard run!");
+    }
+
+    const offensePlay = forcedYards > 0 ? "Run" : offenseSelect.value;
+    const defensePlay = defenseSelect.value;
+
+    addLog(`You called offense play: ${offensePlay}`);
+    addLog(`Opponent called defense play: ${defensePlay}`);
+
+    if(offensePlay === "Run"){
+      yardsGained = forcedYards > 0 ? forcedYards : (3 + Math.floor(Math.random() * 5));
+      if(rand < 0.05) resultType = "fumble";
+      else if(rand < 0.15) resultType = "noGain";
+      else resultType = "gain";
+    } else if(offensePlay === "Short Pass"){
+      if(rand < 0.10) resultType = "incomplete";
+      else if(rand < 0.10) resultType = "interception";
+      else if(rand < 0.65) { resultType = "gain"; yardsGained = 6 + Math.floor(Math.random() * 7); }
+      else { resultType = "gain"; yardsGained = 12 + Math.floor(Math.random() * 8); }
+    } else if(offensePlay === "Deep Pass"){
+      if(rand < 0.15) resultType = "interception";
+      else if(rand < 0.25) resultType = "incomplete";
+      else if(rand < 0.55) { resultType = "gain"; yardsGained = 18 + Math.floor(Math.random() * 12); }
+      else { resultType = "gain"; yardsGained = 30 + Math.floor(Math.random() * 15); }
+    } else if(offensePlay === "Trick Play"){
+      if(rand < 0.50) resultType = "fumble";
+      else if(rand < 0.70) resultType = "noGain";
+      else if(rand < 0.65) { resultType = "gain"; yardsGained = 12 + Math.floor(Math.random() * 12); }
+      else { resultType = "gain"; yardsGained = 25 + Math.floor(Math.random() * 20); }
+    }
+
+    if(defensePlay === "Blitz"){
+      if(Math.random() < 0.15) {
+        resultType = Math.random() < 0.5 ? "interception" : "fumble";
+      } else {
+        if(resultType === "gain") yardsGained = Math.max(0, yardsGained - 3);
+      }
+    } else if(defensePlay === "Zone"){
+      if(resultType === "gain") yardsGained = Math.max(0, yardsGained - 2);
+    } else if(defensePlay === "Man"){
+      if(Math.random() < 0.1) {
+        resultType = Math.random() < 0.5 ? "interception" : "fumble";
+      }
+    } else if(defensePlay === "Safe"){
+      if(resultType === "gain") yardsGained = Math.max(0, yardsGained - 5);
+    }
+
+  } else {
+    let botPlayRand = Math.random();
+
+    if(botPlayRand < 0.4){
+      resultType = "gain";
+      yardsGained = 5 + Math.floor(Math.random() * (botHardScoreChance > 0.6 ? 15 : 8)); 
+    } else if(botPlayRand < 0.55){
+      resultType = "interception";
+    } else if(botPlayRand < 0.7){
+      resultType = "fumble";
+    } else if(botPlayRand < 0.85){
+      resultType = "noGain";
+    } else {
+      resultType = "incomplete";
+    }
+  }
+
+  // PICK 6 logic - with forced possession change on score:
+  if(resultType === "interception" && playerOnOffense){
+    if(Math.random() < 0.3){
+      addLog("🚨 PICK SIX! Interception returned for a touchdown by the defense!", "#ff0000");
+      enemyScore += 7;
+      // After scoring, other team gets ball on 20 yd line:
+      playerOnOffense = false;
+      ballOn = 20;
+      yardsToGo = 10;
+      currentDown = 1;
+      addLog("🏈 Possession switches to the defense team with the ball on the 20 yard line.");
+      updateScoreboard();
+      updateBallMarker();
+      updateDownDistance();
+      offenseSelect.disabled = !playerOnOffense;
+      defenseSelect.disabled = playerOnOffense;
+      callPlayBtn.disabled = false;
+      return;
+    }
+  }
+
+  switch(resultType){
+    case "gain":
+      ballOn += yardsGained;
+      yardsToGo -= yardsGained;
+      addLog(`➡️ Gain of ${yardsGained} yards!`, "#00ff00");
+
+      if(ballOn >= 100 || yardsToGo <= 0){
+        addLog("🏈 Touchdown attempt! Defense has a 50/50 chance to stop it!");
+        if(playerOnOffense){
+          if(Math.random() < 0.4){
+            addLog("🛑 Defense stopped the touchdown! No score.", "#ff4444");
+            switchPossession();
+          } else {
+            playerScore += 7;
+            addLog("🎉 Touchdown! You scored 7 points!", "#00ff00");
+            // Score possession switch:
+            playerOnOffense = false;
+            ballOn = 20;
+            yardsToGo = 10;
+            currentDown = 1;
+            addLog("🏈 Possession switches to the defense team with the ball on the 20 yard line.");
+            updateScoreboard();
+            updateBallMarker();
+            updateDownDistance();
+            offenseSelect.disabled = !playerOnOffense;
+            defenseSelect.disabled = playerOnOffense;
+            callPlayBtn.disabled = false;
+          }
+        } else {
+          if(botHardScoreChance < 0.5){
+            enemyScore += 7;
+            addLog("😞 Opponent scored a touchdown (7 points).", "#ff5555");
+            playerOnOffense = true;
+            ballOn = 20;
+            yardsToGo = 10;
+            currentDown = 1;
+            addLog("🏈 Possession switches to your team with the ball on the 20 yard line.");
+            updateScoreboard();
+            updateBallMarker();
+            updateDownDistance();
+            offenseSelect.disabled = !playerOnOffense;
+            defenseSelect.disabled = playerOnOffense;
+            callPlayBtn.disabled = false;
+          } else {
+            addLog("🛑 You stopped the opponent's touchdown attempt!", "#44ff44");
+            switchPossession();
+          }
+        }
+        break;
+      }
+
+      if(yardsToGo <= 0){
+        addLog("🔁 First down achieved!", "#88ff88");
+        yardsToGo = 10;
+        currentDown = 1;
+      } else {
+        currentDown++;
+        if(currentDown > 4){
+          addLog("❌ Turnover on downs!", "#ff5555");
+          switchPossession();
+          return;
+        }
+      }
+      updateBallMarker();
+      updateDownDistance();
+      updateScoreboard();
+      break;
+
+    case "interception":
+      addLog("🚫 Interception! Defense takes over!", "#ff4444");
+      switchPossession();
+      break;
+
+    case "fumble":
+      addLog("💥 Fumble! Defense recovers!", "#ff4444");
+      switchPossession();
+      break;
+
+    case "incomplete":
+      addLog("⚠️ Incomplete pass. No gain.", "#ffff88");
+      currentDown++;
+      if(currentDown > 4){
+        addLog("❌ Turnover on downs!", "#ff5555");
+        switchPossession();
+        return;
+      }
+      updateDownDistance();
+      break;
+
+    case "noGain":
+      addLog("⚠️ No gain on the play.", "#cccccc");
+      currentDown++;
+      if(currentDown > 4){
+        addLog("❌ Turnover on downs!", "#ff5555");
+        switchPossession();
+        return;
+      }
+      updateDownDistance();
+      break;
+  }
+}
+
+teams.forEach((team, i) => {
+  const div = document.createElement("div");
+  div.className = "team-option";
+  div.tabIndex = 0;
+  div.innerHTML = `
+    <img src="${team.logo}" alt="${team.name} logo" class="team-logo" />
+    <span class="team-name">${team.name}</span>
+  `;
+  div.onclick = () => selectTeam(i);
+  div.onkeydown = (e) => { if(e.key === "Enter" || e.key === " ") selectTeam(i); };
+  teamSelectContainer.appendChild(div);
+});
+
+startBtn.onclick = () => startGame();
+callPlayBtn.onclick = () => simulatePlay();
+
+window.addEventListener("resize", () => {
+  if(field.style.display === "block"){
+    createVerticalYardLines();
+    updateBallMarker();
+  }
+});
+
+const restartBtn = document.getElementById("restartBtn");
+
+function endGame() {
+  clearInterval(timerInterval);
+  driveActive = false;
+  callPlayBtn.disabled = true;
+  offenseSelect.disabled = true;
+  defenseSelect.disabled = true;
+
+  // Hide game UI
+  field.style.display = "none";
+  yardNumbersContainer.style.display = "none";
+  scoreboard.style.display = "none";
+  playSelectors.style.display = "none";
+  callPlayBtn.style.display = "none";
+  downDistance.style.display = "none";
+  timerDisplay.style.display = "none";
+  restartBtn.style.display = "none";
+
+  // Show team selection screen again
+  teamSelectContainer.style.display = "flex";
+  startBtn.style.display = "inline-block";
+
+  // Reset team selection
+  [...teamSelectContainer.children].forEach((c) => c.classList.remove("selected"));
+  selectedTeamIndex = null;
+  startBtn.disabled = true;
+  startBtn.classList.remove("enabled");
+
+  // Clear any remaining logs
+  logElem.textContent = "";
+}
+
+
+// Call this function to declare winner and end game properly
+function declareWinner() {
+  if(playerScore > enemyScore) {
+    addLog("🏆 YOU WIN! Congratulations!", "#00ff00");
+    alert("🏆 YOU WIN! Congratulations!");
+  } else if (playerScore < enemyScore) {
+    addLog("💀 YOU LOSE! Better luck next time!", "#ff4444");
+    alert("💀 YOU LOSE! Better luck next time!");
+  } else {
+    addLog("🤝 It's a tie!", "#ffaa00");
+    alert("🤝 It's a tie!");
+  }
+  endGame(); // call endGame here
+}
+
+// Modify timer end condition to use endGame()
+timerInterval = setInterval(() => {
+  timeLeft--;
+  timerDisplay.textContent = `Time Left: ${formatTime(timeLeft)}`;
+  if(timeLeft <= 0){
+    declareWinner();
+  }
+}, 1000);
+
+// Restart button click handler
+restartBtn.onclick = () => {
+  // Reset UI elements and hide restart button
+  restartBtn.style.display = "none";
+  callPlayBtn.disabled = false;
+  offenseSelect.disabled = !playerOnOffense;
+  defenseSelect.disabled = playerOnOffense;
+  startGame();
+};
+
+// Create a file input in JS
+const input = document.createElement('input');
+input.type = 'file';
+input.accept = 'image/*';
+input.multiple = true;
+
+input.onchange = () => {
+  const files = Array.from(input.files);
+  // Create a new teams array with user images as logos
+  const userTeams = files.map((file, i) => {
+    const url = URL.createObjectURL(file);
+    return {
+      name: `User Team ${i+1}`,
+      logo: url
+    };
+  });
+  
+  console.log(userTeams); // This has your new teams with local images as blobs
+  
+  // You can now use userTeams wherever you want, e.g. update UI
+  // Remember to revoke URLs when done: URL.revokeObjectURL(url);
+};
+
+// Trigger the file input dialog programmatically
+input.click();
+
+
+</script>
+</body>
+</html>

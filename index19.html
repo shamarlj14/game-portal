@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rain Type</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Russo One', sans-serif;
+      background: linear-gradient(to bottom, #8ec5fc, #e0c3fc);
+      overflow: hidden;
+      color: white;
+    }
+
+    h1 {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 3em;
+      color: #fff;
+      animation: floatTitle 4s ease-in-out infinite;
+    }
+
+    @keyframes floatTitle {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(20px); }
+    }
+
+    #game-area {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .word {
+      position: absolute;
+      top: 0;
+      font-size: 1.5em;
+      color: white;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 5px 10px;
+      border-radius: 5px;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+
+    .matched {
+      color: lime;
+    }
+
+    #input {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5em;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      width: 60%;
+      max-width: 400px;
+    }
+
+    #stats {
+      position: absolute;
+      top: 80px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 1em;
+    }
+
+    #refreshBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #222;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #refreshBtn:hover {
+      background: #444;
+    }
+
+    #countdown {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 4em;
+      color: white;
+      display: none;
+      text-shadow: 2px 2px #000;
+    }
+
+    #game-over {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      text-align: center;
+      font-size: 3em;
+      color: red;
+      display: none;
+      text-shadow: 2px 2px #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌧 Rain Type 🌧</h1>
+  <div id="game-area"></div>
+  <input type="text" id="input" placeholder="Start typing...">
+  <div id="stats">
+    <div>Score: <span id="score">0</span></div>
+    <div>Lives: <span id="lives">5</span></div>
+    <div>Words Typed: <span id="typed">0</span></div>
+  </div>
+  <button id="refreshBtn" onclick="restartGame()">↻ Restart</button>
+  <div id="countdown">3</div>
+  <div id="game-over">Game Over!</div>
+
+  <script>
+    const words = [
+  "rain", "storm", "drip", "flow", "wet", "sky", "wind", "cool", "chill",
+  "mist", "soft", "drop", "fog", "calm", "wave", "cloud", "breeze", "gust",
+  "freeze", "hail", "dew", "shine", "damp", "pour", "flood", "stormy",
+  "gale", "humid", "lightning", "thunder", "echo", "shadow", "twilight",
+  "moon", "star", "dusk", "dawn", "rainbow", "glow", "zephyr", "haze",
+  "torrent", "tempest", "drizzle", "puddle", "frost", "sprinkle", "soak",
+  "spray", "splash", "ripple", "calmness", "quiet", "softly", "cloudy",
+  "overcast", "whisper", "sigh", "misty", "clear", "bloom", "meadow", "leaf",
+  "petal", "river", "pond", "spring", "summer", "autumn", "winter", "snow",
+  "love", "sniper"
+];
+
+    const gameArea = document.getElementById("game-area");
+    const input = document.getElementById("input");
+    const scoreEl = document.getElementById("score");
+    const livesEl = document.getElementById("lives");
+    const typedEl = document.getElementById("typed");
+    const countdownEl = document.getElementById("countdown");
+    const gameOverEl = document.getElementById("game-over");
+
+    let activeWords = [];
+    let gameInterval;
+    let score = 0;
+    let lives = 5;
+    let wordsTyped = 0;
+    let paused = false;
+    let running = false;
+
+    function createWord() {
+      if (!running || paused) return;
+      const wordText = words[Math.floor(Math.random() * words.length)];
+      const word = document.createElement("div");
+      word.className = "word";
+      word.innerText = wordText;
+      word.style.left = Math.random() * (window.innerWidth - 120) + "px";
+      gameArea.appendChild(word);
+      activeWords.push({ el: word, text: wordText, y: 0 });
+    }
+
+    function updateWords() {
+      if (!running || paused) return;
+
+      activeWords.forEach((w, i) => {
+        w.y += 1;
+        w.el.style.top = w.y + "px";
+
+        if (w.y > window.innerHeight - 60) {
+          gameArea.removeChild(w.el);
+          activeWords.splice(i, 1);
+          lives--;
+          livesEl.textContent = lives;
+          checkGameOver();
+        }
+      });
+
+      if (Math.random() < 0.01 && activeWords.length < 5) createWord();
+    }
+
+    function checkInput() {
+      const typed = input.value.trim().toLowerCase();
+      if (!typed) return;
+
+      for (let i = 0; i < activeWords.length; i++) {
+        const wordObj = activeWords[i];
+        if (wordObj.text.startsWith(typed)) {
+          // highlight matched letters
+          wordObj.el.innerHTML = `<span class="matched">${typed}</span>${wordObj.text.slice(typed.length)}`;
+          if (typed === wordObj.text) {
+            gameArea.removeChild(wordObj.el);
+            activeWords.splice(i, 1);
+            score++;
+            wordsTyped++;
+            scoreEl.textContent = score;
+            typedEl.textContent = wordsTyped;
+            input.value = "";
+          }
+          return;
+        } else {
+          wordObj.el.textContent = wordObj.text;
+        }
+      }
+    }
+
+    function checkGameOver() {
+      if (lives <= 0) {
+        running = false;
+        gameOverEl.style.display = "block";
+        clearInterval(gameInterval);
+      }
+    }
+
+    function startCountdown(callback) {
+      countdownEl.style.display = "block";
+      let count = 3;
+      countdownEl.innerText = count;
+      const cd = setInterval(() => {
+        count--;
+        countdownEl.innerText = count > 0 ? count : "GO!";
+        if (count < 0) {
+          clearInterval(cd);
+          countdownEl.style.display = "none";
+          callback();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      running = true;
+      gameOverEl.style.display = "none";
+      gameInterval = setInterval(updateWords, 30);
+    }
+
+    function restartGame() {
+      // Clear all words
+      activeWords.forEach(w => gameArea.removeChild(w.el));
+      activeWords = [];
+      clearInterval(gameInterval);
+      score = 0;
+      lives = 5;
+      wordsTyped = 0;
+      input.value = "";
+      scoreEl.textContent = score;
+      livesEl.textContent = lives;
+      typedEl.textContent = wordsTyped;
+      startCountdown(startGame);
+    }
+
+    // Events
+    input.addEventListener("input", checkInput);
+    window.addEventListener("blur", () => paused = true);
+    window.addEventListener("focus", () => paused = false);
+function updateWords() {
+  if (!running || paused) return;
+
+  activeWords.forEach((w, i) => {
+    w.y += 3; // ⬅ Increased speed (was 1)
+    w.el.style.top = w.y + "px";
+
+    if (w.y > window.innerHeight - 60) {
+      gameArea.removeChild(w.el);
+      activeWords.splice(i, 1);
+      lives--;
+      livesEl.textContent = lives;
+      checkGameOver();
+    }
+  });
+
+  // ⬅ Increase spawn frequency
+  if (Math.random() < 0.05 && activeWords.length < 8) createWord(); // was 0.01 and 5
+}
+
+function startGame() {
+  running = true;
+  gameOverEl.style.display = "none";
+  gameInterval = setInterval(updateWords, 20); // ⬅ Faster update loop (was 30ms)
+}
+function updateWords() {
+  if (!running || paused) return;
+
+  activeWords.forEach((w, i) => {
+    w.y += 2; // ⬅ Slower than last time (was 3)
+    w.el.style.top = w.y + "px";
+
+    if (w.y > window.innerHeight - 60) {
+      gameArea.removeChild(w.el);
+      activeWords.splice(i, 1);
+      lives--;
+      livesEl.textContent = lives;
+      checkGameOver();
+    }
+  });
+
+  // Spawn slightly slower than last time but still faster than original
+  if (Math.random() < 0.03 && activeWords.length < 7) createWord();
+}
+
+function startGame() {
+  running = true;
+  gameOverEl.style.display = "none";
+  input.focus(); // ⬅ Auto-focus for typing right away
+  gameInterval = setInterval(updateWords, 25); // ⬅ Slightly slower than last (was 20ms)
+}
+
+function restartGame() {
+  activeWords.forEach(w => gameArea.removeChild(w.el));
+  activeWords = [];
+  clearInterval(gameInterval);
+  score = 0;
+  lives = 5;
+  wordsTyped = 0;
+  input.value = "";
+  scoreEl.textContent = score;
+  livesEl.textContent = lives;
+  typedEl.textContent = wordsTyped;
+  input.focus(); // ⬅ Auto-focus on restart
+  startCountdown(startGame);
+}
+
+// Pause when off-screen
+window.addEventListener("blur", () => {
+  paused = true;
+  input.blur(); // remove focus so typing doesn't happen while away
+});
+window.addEventListener("focus", () => {
+  paused = false;
+  input.focus(); // ⬅ Refocus on return
+});
+
+    // Auto-start
+    startCountdown(startGame);
+  </script>
+</body>
+</html>

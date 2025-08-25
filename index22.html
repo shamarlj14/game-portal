@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🎰 Blackjack 🎰</title>
+   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+  body {
+    margin: 0; padding: 0;
+    background: radial-gradient(circle at center, #1d0033 0%, #00001a 100%);
+    font-family: 'Roboto Slab', serif;
+    color: #e0e0ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    user-select: none;
+  }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3.8rem;
+    margin: 30px 0 10px;
+    color: #9b59b6;
+    text-shadow:
+      0 0 5px #8e44ad,
+      0 0 10px #9b59b6,
+      0 0 20px #6c3483,
+      0 0 30px #512e5f;
+    transition: all 0.3s ease;
+  }
+
+  .container {
+    background: linear-gradient(145deg, #3b1f6b, #1a0e3a);
+    border-radius: 15px;
+    padding: 30px 40px;
+    box-shadow:
+      0 0 15px #9b59b6,
+      inset 0 0 40px #2e0854;
+    width: 370px;
+    max-width: 95vw;
+    text-align: center;
+  }
+
+  input[type="text"] {
+    width: 80%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 15px;
+    font-family: 'Roboto Slab', serif;
+    background: #301e5f;
+    color: #dcd6f7;
+    box-shadow: 0 0 8px #6f42c1 inset;
+  }
+
+  input[type="text"]::placeholder {
+    color: #b39ddb;
+    font-style: italic;
+  }
+
+  button {
+    background: #9b59b6;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 28px;
+    margin: 8px 6px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #f0e6ff;
+    box-shadow:
+      0 0 6px #b085f5,
+      0 0 12px #9b59b6;
+    transition: background 0.3s ease, transform 0.2s ease;
+    font-family: 'Roboto Slab', serif;
+  }
+  button:hover {
+    background: #b085f5;
+    transform: scale(1.1);
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .card-area {
+    margin: 20px 0 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .label {
+    font-size: 1.4rem;
+    color: #d8c8ff;
+    margin-bottom: 8px;
+    letter-spacing: 1.2px;
+    text-shadow:
+      0 0 5px #bb99ff,
+      0 0 10px #9b59b6;
+  }
+  .cards {
+    font-size: 2.8rem;
+    letter-spacing: 12px;
+    user-select: none;
+    color: #c6b9ff;
+    text-shadow:
+      0 0 6px #a48fff;
+  }
+  #message {
+    margin-top: 24px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #d6c6ff;
+    text-shadow:
+      0 0 10px #d6c6ff;
+    min-height: 2rem;
+    min-width: 320px;
+  }
+
+  .scoreboard-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 8px;
+    width: 100%;
+  }
+  .scoreboard {
+    background: #5b3990;
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px #9b59b6;
+    font-size: 1rem;
+    color: #e1dfff;
+    user-select: none;
+    min-width: 120px;
+  }
+  .scoreboard span {
+    font-weight: 700;
+    color: #ffdfff;
+  }
+</style>
+</head>
+<body>
+
+  <h1 id="title">🎰 Blackjack 🎰</h1>
+
+  <!-- START SCREEN -->
+  <div class="container" id="startContainer">
+    <input type="text" id="playerName" placeholder="Enter your name" maxlength="12" autocomplete="off" />
+    <button id="startBtn">Start Game</button>
+    <div class="scoreboard-container" style="margin-top:20px;">
+      <div class="scoreboard" id="playerScoreboard">Player Wins: <span>0</span> | Losses: <span>0</span></div>
+      <div class="scoreboard" id="dealerScoreboard">Dealer Wins: <span>0</span> | Losses: <span>0</span></div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="container hidden" id="gameScreen">
+    <div class="card-area">
+      <div class="label">Dealer</div>
+      <div id="dealerCards" class="cards"></div>
+      <div class="scoreboard" id="dealerScoreInGame">Wins: <span>0</span> | Losses: <span>0</span></div>
+    </div>
+
+    <div class="card-area">
+      <div class="label" id="playerLabel"></div>
+      <div id="playerCards" class="cards"></div>
+      <div class="scoreboard" id="playerScoreInGame">Wins: <span>0</span> | Losses: <span>0</span></div>
+    </div>
+
+    <button id="hitBtn">Hit</button>
+    <button id="standBtn">Stand</button>
+    <button id="nextRoundBtn" class="hidden">Next Round</button>
+    <button id="endGameBtn" class="hidden">End Game</button>
+
+    <div id="message"></div>
+  </div>
+
+<script>
+  const suits = ['♠️', '♥️', '♦️', '♣️'];
+  const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+  let deck = [];
+  let dealer = [];
+  let player = [];
+  let playerName = '';
+
+  let playerWins = 0;
+  let playerLosses = 0;
+  let dealerWins = 0;
+  let dealerLosses = 0;
+
+  const startContainer = document.getElementById('startContainer');
+  const gameScreen = document.getElementById('gameScreen');
+  const playerNameInput = document.getElementById('playerName');
+  const playerLabel = document.getElementById('playerLabel');
+  const dealerCardsDiv = document.getElementById('dealerCards');
+  const playerCardsDiv = document.getElementById('playerCards');
+  const messageDiv = document.getElementById('message');
+  const titleH1 = document.getElementById('title');
+
+  const startBtn = document.getElementById('startBtn');
+  const hitBtn = document.getElementById('hitBtn');
+  const standBtn = document.getElementById('standBtn');
+  const nextRoundBtn = document.getElementById('nextRoundBtn');
+  const endGameBtn = document.getElementById('endGameBtn');
+
+  function buildDeck() {
+    deck = [];
+    for (let suit of suits) {
+      for (let value of values) {
+        deck.push({ value, suit });
+      }
+    }
+  }
+
+  function shuffleDeck() {
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+  }
+
+  function drawCard() {
+    return deck.pop();
+  }
+
+  function displayHands(showDealerFull) {
+    playerCardsDiv.textContent = player.map(c => `${c.value}${c.suit}`).join(' ');
+    if (showDealerFull) {
+      dealerCardsDiv.textContent = dealer.map(c => `${c.value}${c.suit}`).join(' ');
+    } else {
+      dealerCardsDiv.textContent = `${dealer[0].value}${dealer[0].suit} ❓`;
+    }
+  }
+
+  function getHandValue(hand) {
+    let total = 0;
+    let aces = 0;
+    for (let card of hand) {
+      if (['J', 'Q', 'K'].includes(card.value)) {
+        total += 10;
+      } else if (card.value === 'A') {
+        total += 11;
+        aces++;
+      } else {
+        total += parseInt(card.value);
+      }
+    }
+    while (total > 21 && aces > 0) {
+      total -= 10;
+      aces--;
+    }
+    return total;
+  }
+
+  function checkFiveCardCharlie(hand) {
+    return hand.length === 5 && getHandValue(hand) <= 21;
+  }
+
+  function setScore(id, wins, losses) {
+    const el = document.getElementById(id);
+    const spans = el.querySelectorAll('span');
+    if (spans.length >= 2) {
+      spans[0].textContent = wins;
+      spans[1].textContent = losses;
+    }
+  }
+
+  function updateAllScores() {
+    setScore('playerScoreboard', playerWins, playerLosses);
+    setScore('dealerScoreboard', dealerWins, dealerLosses);
+    setScore('playerScoreInGame', playerWins, playerLosses);
+    setScore('dealerScoreInGame', dealerWins, dealerLosses);
+  }
+
+  function winRound() {
+    playerWins++;
+    dealerLosses++;
+  }
+
+  function loseRound() {
+    dealerWins++;
+    playerLosses++;
+  }
+
+  function resetGame() {
+    buildDeck();
+    shuffleDeck();
+    dealer = [drawCard(), drawCard()];
+    player = [drawCard(), drawCard()];
+    displayHands(false);
+    messageDiv.textContent = '';
+    endGameBtn.classList.add('hidden');
+    nextRoundBtn.classList.add('hidden');
+
+    hitBtn.disabled = false;
+    standBtn.disabled = false;
+
+    const playerVal = getHandValue(player);
+    if (playerVal === 21) {
+      displayHands(true);
+      winRound();
+      endRound(`${playerName} hits 21! You win! 🎉`);
+    } else if (checkFiveCardCharlie(player)) {
+      displayHands(true);
+      winRound();
+      endRound(`${playerName} has 5 cards under 21! You win! 🎉`);
+    } else {
+      updateAllScores();
+    }
+  }
+
+  function endRound(msg) {
+    messageDiv.textContent = msg;
+    hitBtn.disabled = true;
+    standBtn.disabled = true;
+    endGameBtn.classList.remove('hidden');
+    nextRoundBtn.classList.remove('hidden');
+    updateAllScores();
+  }
+
+  function hit() {
+    player.push(drawCard());
+    displayHands(false);
+    const total = getHandValue(player);
+
+    if (total > 21) {
+      displayHands(true);
+      loseRound();
+      endRound(`Bust! Dealer wins.`);
+    } else if (total === 21) {
+      displayHands(true);
+      winRound();
+      endRound(`${playerName} hits 21! You win! 🎉`);
+    } else if (checkFiveCardCharlie(player)) {
+      displayHands(true);
+      winRound();
+      endRound(`${playerName} has 5 cards under 21! You win! 🎉`);
+    }
+  }
+
+  function stand() {
+    while (getHandValue(dealer) < 17) {
+      dealer.push(drawCard());
+      if (checkFiveCardCharlie(dealer)) break;
+    }
+    displayHands(true);
+
+    const playerTotal = getHandValue(player);
+    const dealerTotal = getHandValue(dealer);
+    const playerFiveCard = checkFiveCardCharlie(player);
+    const dealerFiveCard = checkFiveCardCharlie(dealer);
+
+    if (playerFiveCard && dealerFiveCard) {
+      endRound(`Both have 5 cards under 21. It's a tie!`);
+    } else if (playerFiveCard) {
+      winRound();
+      endRound(`${playerName} has 5 cards under 21! You win! 🎉`);
+    } else if (dealerFiveCard) {
+      loseRound();
+      endRound(`Dealer has 5 cards under 21! Dealer wins!`);
+    } else if (dealerTotal > 21) {
+      winRound();
+      endRound(`Dealer busts! ${playerName} wins! 🎉`);
+    } else if (playerTotal > dealerTotal) {
+      winRound();
+      endRound(`${playerName} wins! 🎉`);
+    } else if (dealerTotal > playerTotal) {
+      loseRound();
+      endRound(`Dealer wins!`);
+    } else {
+      endRound(`It's a tie!`);
+    }
+  }
+
+  function startGame() {
+    const name = playerNameInput.value.trim();
+    if (!name) {
+      alert('Please enter your name to start.');
+      return;
+    }
+    playerName = name.length > 12 ? name.slice(0, 12) : name;
+    playerLabel.textContent = playerName;
+
+    startContainer.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    titleH1.textContent = '🎰 Neon Blackjack Royale 🎰';
+
+    playerWins = 0;
+    playerLosses = 0;
+    dealerWins = 0;
+    dealerLosses = 0;
+    updateAllScores();
+
+    resetGame();
+  }
+
+  function endGame() {
+    gameScreen.classList.add('hidden');
+    startContainer.classList.remove('hidden');
+    titleH1.textContent = '🎰 Scoreboard 🎰';
+    playerNameInput.value = '';
+    messageDiv.textContent = '';
+
+    hitBtn.disabled = true;
+    standBtn.disabled = true;
+    endGameBtn.classList.add('hidden');
+    nextRoundBtn.classList.add('hidden');
+  }
+
+  startBtn.addEventListener('click', startGame);
+  playerNameInput.addEventListener('keydown', e => { if(e.key === 'Enter') startGame(); });
+  hitBtn.addEventListener('click', hit);
+  standBtn.addEventListener('click', stand);
+  nextRoundBtn.addEventListener('click', () => {
+    nextRoundBtn.classList.add('hidden');
+    endGameBtn.classList.add('hidden');
+    messageDiv.textContent = '';
+    resetGame();
+  });
+  endGameBtn.addEventListener('click', endGame);
+
+  hitBtn.disabled = true;
+  standBtn.disabled = true;
+</script>
+
+</body>
+</html>

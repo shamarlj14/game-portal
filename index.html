@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sniplays</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      transition: background 1s ease;
+      background: #2200ff; /* initial color */
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+      color: #ddd;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .portal-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .search-bar {
+      margin-bottom: 12px;
+      position: relative;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    #searchInput {
+      padding: 10px 14px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      transition: box-shadow 0.3s ease;
+      max-width: 320px;
+      flex-grow: 1;
+    }
+    #searchInput:focus {
+      outline: none;
+      box-shadow: 0 0 8px #00fff0;
+      border-color: #00fff0;
+      color: #000;
+      background: #e0ffff;
+    }
+
+    .clear-btn, .random-btn {
+      background: #ff004c;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 14px;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .clear-btn:hover {
+      background: #cc003f;
+    }
+    .random-btn {
+      background: #00fff0;
+      color: black;
+    }
+    .random-btn:hover {
+      background: #00c7b8;
+    }
+
+    .portal-title {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      color: #00FFF0;
+      font-weight: bold;
+      text-shadow: 0 0 8px #7fdbffaa;
+    }
+
+    .game-count {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: #7fffd4aa;
+      font-weight: 600;
+    }
+
+    .game-cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .game-card {
+      background: #555;
+      border-radius: 12px;
+      padding: 14px 18px;
+      width: calc(18% - 14px);
+      aspect-ratio: 1 / 1;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      position: relative;
+      box-sizing: border-box;
+      transition:
+        background 0.35s ease,
+        box-shadow 0.35s ease,
+        transform 0.3s ease;
+      color: #eee;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .game-card:hover {
+      transform: scale(1.08);
+      box-shadow: 0 10px 20px #00fff099;
+      z-index: 10;
+    }
+
+    .game-card-content h2 {
+      font-size: 1.4rem;
+      color: #ffffff;
+      margin: 0 0 8px;
+      transition: color 0.1s ease;
+      text-transform: capitalize;
+    }
+
+    .game-card:hover h2 {
+      color: #000000;
+    }
+
+    .visit-count {
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      color: #000000;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .game-card[data-title] {
+      position: relative;
+    }
+
+    .game-card[data-title]::after {
+      content: attr(data-title);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: #01ccda;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      font-size: 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 10;
+    }
+
+    .game-card:hover::after {
+      opacity: 1;
+    }
+
+    /* Hover background colors */
+    .game-card:nth-child(1):hover { background-color: #f3e5ab; }
+    .game-card:nth-child(2):hover { background-color: #00ffff; }
+    .game-card:nth-child(3):hover { background-color: #fafafa; }
+    .game-card:nth-child(4):hover { background-color: #0000FF; }
+    .game-card:nth-child(5):hover { background-color: #CCCCFF; }
+    .game-card:nth-child(6):hover { background-color: #7a024c; }
+    .game-card:nth-child(7):hover { background-color: #ff0068; }
+    .game-card:nth-child(8):hover { background-color: #7b0000; }
+    .game-card:nth-child(9):hover { background-color: #2a77a1; }
+    .game-card:nth-child(10):hover { background-color: #820b8f; }
+    .game-card:nth-child(11):hover { background-color: #CCCCFF; }
+    .game-card:nth-child(12):hover { background-color: #07ce5a; }
+    .game-card:nth-child(13):hover { background-color: #ffc400; }
+    .game-card:nth-child(14):hover { background-color: #ca3157; }
+    .game-card:nth-child(15):hover { background-color: #d97ef3; }
+    .game-card:nth-child(16):hover { background-color: #ed3978; }
+    .game-card:nth-child(17):hover { background-color: #136598; }
+    .game-card:nth-child(18):hover { background-color: #6b077f; }
+    .game-card:nth-child(19):hover { background-color: #008e82; }
+    .game-card:nth-child(20):hover { background-color: #0d2ea4; }
+    .game-card:nth-child(21):hover { background-color: #ff0000; }
+    .game-card:nth-child(22):hover { background-color: #5c057e; }
+    .game-card:nth-child(23):hover { background-color: #df1d57; }
+    .game-card:nth-child(24):hover { background-color: #4f874a; }
+    .game-card:nth-child(25):hover { background-color: #5a2f01fe; }
+    .game-card:nth-child(26):hover { background-color: #950808fe; }
+    .game-card:nth-child(27):hover { background-color: #faf440fe; }
+    .game-card:nth-child(28):hover { background-color: #443924fe; }
+    .game-card:nth-child(29):hover { background-color: #199f69fe; } 
+    .game-card:nth-child(30):hover { background-color: #442424fe; } 
+
+    /* Category badges moved to bottom-right */
+    .category-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      background: #00fff0cc;
+      color: #000;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      user-select: none;
+      text-transform: uppercase;
+      box-shadow: 0 0 6px #00fff099;
+    }
+
+    /* Tooltip container */
+    .game-card[title] {
+      position: relative;
+    }
+    .game-card[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000c;
+      color: #0ff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      margin-bottom: 8px;
+      z-index: 20;
+    }
+
+    /* Responsive for smaller screens */
+    @media (max-width: 900px) {
+      .game-card {
+        width: calc(28% - 14px);
+      }
+    }
+    @media (max-width: 600px) {
+      .game-card {
+        width: calc(46% - 14px);
+      }
+      #searchInput {
+        width: 100%;
+      }
+    }
+    @media (max-width: 350px) {
+      .game-card {
+        width: 100%;
+      }
+    }
+
+    #user-counter {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+}
+
+
+.news-contact {
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 12px;
+  background: #000; /* Black background */
+  box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+  text-align: left;
+  max-width: 800px;
+  color: #eee; /* Default text color */
+}
+
+.news-contact h2 {
+  font-size: 1.6em;
+  margin-bottom: 10px;
+  color: #ffcc00; /* Gold title for pop */
+}
+
+.news-contact p {
+  margin: 10px 0;
+  line-height: 1.6;
+  color: #ddd;
+}
+
+.news-contact .highlight {
+  color: #00aaff; /* Bright blue for Sniplays */
+  font-weight: bold;
+}
+
+.news-contact .email-link {
+  color: #ff4b2b; /* Red-orange */
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.news-contact .email-link:hover {
+  text-decoration: underline;
+  color: #ff6633;
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="news-contact">
+  <h2>📢 News & Contact</h2>
+  <p><strong>Latest Update:</strong> Welcome to <span class="highlight">Sniplays</span>! I'm adding new games and fixing bugs. Stay tuned for exciting updates!</p>
+  <p>
+    💌 Got a game idea, found a bug, or just want to share feedback?  
+    Email me at: <a href="mailto:sniplays14@gmail.com" class="email-link">sniplays14@gmail.com</a>
+  </p>
+</div>
+
+  <div class="portal-container">
+    <h1 class="portal-title">Sniplays</h1>
+
+    <div class="game-count" id="gameCount"></div>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search games by name or category" onkeyup="searchGames()" aria-label="Search games by name or category" />
+      <button class="clear-btn" onclick="clearSearch()" aria-label="Clear search input">Clear</button>
+      <button class="random-btn" onclick="randomGame()" aria-label="Play a random game">Random Game</button>
+    </div>
+
+    <div id="user-counter">0 people online</div>
+
+
+
+    <div class="game-cards" id="gameCardsContainer">
+      <!-- Game cards with visit-count inside -->
+
+   <div class="game-card" id="game1" data-title="Test your luck with numbers!">
+  <div class="game-card-content">
+    <h2>1-1,000,000</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Math</div>
+  </div>
+</div>
+
+<div class="game-card" id="game2" data-title="Pick your emoji and battle for victory!">
+  <div class="game-card-content">
+    <h2>Emoji Royal</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Battle</div>
+  </div>
+</div>
+
+<div class="game-card" id="game3" data-title="How fast can you type in 4 secs?">
+  <div class="game-card-content">
+    <h2>Slow Type</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Typing</div>
+  </div>
+</div>
+
+<div class="game-card" id="game4" data-title="What is 54/85? type the right percentage.">
+  <div class="game-card-content">
+    <h2>Percentage Game</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Math</div>
+  </div>
+</div>
+
+<div class="game-card" id="game5" data-title="Who can be the winner of smashing your keyboard?">
+  <div class="game-card-content">
+    <h2>Letter Smash</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Battle</div>
+  </div>
+</div>
+
+<div class="game-card" id="game6" data-title="Judge Game — You Decide the Sentence">
+  <div class="game-card-content">
+    <h2>Judge It right</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Logic</div>
+  </div>
+</div>
+
+<div class="game-card" id="game7" data-title="Are you smarter than your friend?">
+  <div class="game-card-content">
+    <h2>Math 1v1</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Math</div>
+  </div>
+</div>
+
+<div class="game-card" id="game8" data-title="Do you have a good memory?">
+  <div class="game-card-content">
+    <h2>Impossible Order</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Memory</div>
+  </div>
+</div>
+
+<div class="game-card" id="game9" data-title="Do you know your colors?">
+  <div class="game-card-content">
+    <h2>Guess the Colors</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Colors</div>
+  </div>
+</div>
+
+<div class="game-card" id="game10" data-title="How good is your eyesight?">
+  <div class="game-card-content">
+    <h2>Spot the Difference</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Observation</div>
+  </div>
+</div>
+
+<div class="game-card" id="game11" data-title="It's a 50/50 shot – do you believe in yourself?">
+  <div class="game-card-content">
+    <h2>Trust Your Gut</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Luck</div>
+  </div>
+</div>
+
+<div class="game-card" id="game12" data-title="5 random cards – highest wins the point!">
+  <div class="game-card-content">
+    <h2>Kings Knight</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Cards</div>
+  </div>
+</div>
+
+<div class="game-card" id="game13" data-title="Don't dodge every color though!">
+  <div class="game-card-content">
+    <h2>Color Dodge</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Colors</div>
+  </div>
+</div>
+
+<div class="game-card" id="game14" data-title="You have a town, can you keep your people safe?">
+  <div class="game-card-content">
+    <h2>Watch Over Us</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Logic</div>
+  </div>
+</div>
+
+<div class="game-card" id="game15" data-title="We all know how to play hangman">
+  <div class="game-card-content">
+    <h2>HangMan</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">WORDS</div>
+  </div>
+</div>
+
+<div class="game-card" id="game16" data-title="Create a mesmerizing chain but make sure the dots are not in the same spot">
+  <div class="game-card-content">
+    <h2>color chain</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Puzzle</div>
+  </div>
+</div>
+
+<div class="game-card" id="game17" data-title="How good is your hand and eyes under pressure">
+  <div class="game-card-content">
+    <h2>Shape Reaction</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Reaction</div>
+  </div>
+</div>
+
+<div class="game-card" id="game18" data-title="You move and you have to get to the white box but you got to avoid the red squares">
+  <div class="game-card-content">
+    <h2>Trap Escape</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Memory</div>
+  </div>
+</div>
+
+<div class="game-card" id="game19" data-title="Words are falling from the sky can you type them in time">
+  <div class="game-card-content">
+    <h2>Rain Type</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Typing</div>
+  </div>
+</div>
+
+<div class="game-card" id="game20" data-title="dodge the shadow">
+  <div class="game-card-content">
+    <h2>Shadow Dodge</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Reaction</div>
+  </div>
+</div>
+
+<div class="game-card" id="game21" data-title="catch the right color ">
+  <div class="game-card-content">
+    <h2>Color Catcher</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Colors</div>
+  </div>
+</div>
+
+<div class="game-card" id="game22" data-title="first to hit 21">
+  <div class="game-card-content">
+    <h2>Blackjack</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Cards</div>
+  </div>
+</div>
+
+<div class="game-card" id="game23" data-title="A classic card battle where skill meets luck!">
+  <div class="game-card-content">
+    <h2>poker 5 </h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">cards</div>
+  </div>
+</div>
+
+<div class="game-card" id="game24" data-title="be careful who u add to your town ">
+  <div class="game-card-content">
+    <h2>town gate </h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">logic</div>
+  </div>
+</div>
+
+<div class="game-card" id="game25" data-title="if you like football this is for you ">
+  <div class="game-card-content">
+    <h2>Sunday Playcalls</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Sports</div>
+  </div>
+</div>
+
+<div class="game-card" id="game26" data-title="storys come up and you have to Name the Killer">
+  <div class="game-card-content">
+    <h2>Name the Killer</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">logic</div>
+  </div>
+</div>
+
+<div class="game-card" id="game27" data-title="its a 5 letter word can u get it ">
+  <div class="game-card-content">
+    <h2>Wordle</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">WORDS</div>
+  </div>
+</div>
+
+<div class="game-card" id="game28" data-title="Can u make it 30 days fighting zombies ">
+  <div class="game-card-content">
+    <h2>Zombie Survival </h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">Logic</div>
+  </div>
+</div>
+
+<div class="game-card" id="game29" data-title="are you good at math just normal this time">
+  <div class="game-card-content">
+    <h2>Math solver</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">math</div>
+  </div>
+</div>
+
+<div class="game-card" id="game30" data-title="Coming Soon...">
+  <div class="game-card-content">
+    <h2>Coming Soon...</h2>
+    <div class="visit-count">Visits: 0</div>
+    <div class="category-badge">???</div>
+  </div>
+</div>
+
+  <script>
+    const totalGames = 30; // Update if you add more games
+
+    // Initialize visit counts to 0 if not present in localStorage
+    for (let i = 1; i <= totalGames; i++) {
+      if (!localStorage.getItem('gameVisit_' + i)) {
+        localStorage.setItem('gameVisit_' + i, '0');
+      }
+    }
+
+    // Update visit count text for all game cards
+    function updateVisitCountsUI() {
+      for (let i = 1; i <= totalGames; i++) {
+        const card = document.getElementById('game' + i);
+        if (card) {
+          const visitDiv = card.querySelector('.visit-count');
+          if (visitDiv) {
+            const count = localStorage.getItem('gameVisit_' + i) || '0';
+            visitDiv.textContent = `Visits: ${count}`;
+          }
+        }
+      }
+    }
+
+    // Add click listeners to all game cards to increment visit count and redirect
+    for (let i = 1; i <= totalGames; i++) {
+      const card = document.getElementById('game' + i);
+      if (card) {
+        card.addEventListener('click', () => {
+          const key = 'gameVisit_' + i;
+          let count = parseInt(localStorage.getItem(key) || '0', 10);
+          count++;
+          localStorage.setItem(key, count.toString());
+
+          updateVisitCountsUI();
+
+          window.location.href = `index${i}.html`;
+        });
+      }
+    }
+
+    // Search/filter games by name or category
+    function searchGames() {
+      const input = document.getElementById('searchInput').value.trim().toLowerCase();
+      const cards = document.querySelectorAll('.game-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const title = card.querySelector('h2').textContent.toLowerCase();
+        const category = card.querySelector('.category-badge').textContent.toLowerCase();
+
+        const matches = title.includes(input) || category.includes(input);
+
+        card.style.display = matches ? 'flex' : 'none';
+
+        if (matches) visibleCount++;
+      });
+
+      document.getElementById('gameCount').textContent =
+        `Showing ${visibleCount} game${visibleCount !== 1 ? 's' : ''}`;
+    }
+
+    function clearSearch() {
+      const input = document.getElementById("searchInput");
+      input.value = "";
+      searchGames();
+      input.focus();
+    }
+
+    // Random game button visit increment
+    function randomGame() {
+      const cards = Array.from(document.querySelectorAll('.game-card'))
+        .filter(card => card.style.display !== 'none');
+
+      if (cards.length === 0) {
+        alert("No games found to play!");
+        return;
+      }
+
+      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      const id = randomCard.id;
+      const gameNumber = id.replace('game', '');
+
+      // Increment visit count in localStorage
+      let currentCount = parseInt(localStorage.getItem('gameVisit_' + gameNumber) || '0', 10);
+      localStorage.setItem('gameVisit_' + gameNumber, (currentCount + 1).toString());
+
+      window.location.href = `index${gameNumber}.html`;
+    }
+
+    window.onload = () => {
+      searchGames();
+      updateVisitCountsUI();
+    };
+
+    // Background animation unchanged
+    const colors = [
+      '#0A0A0A','#1C1C1C','#121212','#141414','#222222','#2B2B2B','#333333','#3A3A3A','#1E1E1E',
+      '#0F0F0F','#000000','#000000','#121212','#1A1A1A','#2F4F4F','#4B4B4B','#5A5A5A','#00008B',
+      '#000080','#191970','#203040',
+    ];
+    let colorIndex = 0;
+    function changeBackground() {
+      colorIndex = (colorIndex + 1) % colors.length;
+      document.body.style.background = colors[colorIndex];
+    }
+    setInterval(changeBackground, 3000);
+  </script>
+</body>
+</html>

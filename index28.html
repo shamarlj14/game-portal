@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="img2.png" href="img2.png" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title> Zombie Survival — Snip Iland Escape</title>
+
+<!-- ===== CSS (first) ===== -->
+<style>
+  :root{
+    --bg:#0f1724; --panel:#0b1120; --accent:#16a34a; --muted:#9aa7b2;
+    --danger:#ef4444; --gold:#f59e0b; --glass:rgba(255,255,255,0.03);
+  }
+  *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071123 0%, #081729 60%);color:#e6eef6}
+  .container{max-width:1100px;margin:28px auto;padding:20px;background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 6px 30px rgba(2,6,23,0.6);}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  h1{font-size:20px;margin:0}
+  .top-row{display:flex;gap:16px}
+  .panel{
+    background:var(--panel);
+    padding:12px;border-radius:10px;flex:1;min-width:250px;border:1px solid rgba(255,255,255,0.03);
+  }
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .stat{background:var(--glass);padding:10px;border-radius:8px;text-align:center}
+  .stat .num{font-weight:700;font-size:18px}
+  .actions{display:flex;flex-direction:column;gap:8px}
+  button{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.05));color:#e6eef6;border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:8px;cursor:pointer}
+  button.primary{background:linear-gradient(180deg,var(--accent),#0e8b3f);border:none}
+  button.warn{background:linear-gradient(180deg,var(--danger),#a81d1d);border:none}
+  .log{height:360px;overflow:auto;padding:10px;background:rgba(2,6,23,0.6);border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+  .log .entry{margin-bottom:8px;padding:8px;border-radius:6px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+  .survivors{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto}
+  .survivor{padding:8px;border-radius:8px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));display:flex;justify-content:space-between;align-items:center}
+  .pill{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+  .small{font-size:13px;color:var(--muted)}
+  .flex{display:flex;gap:8px;align-items:center}
+  .footer{margin-top:14px;display:flex;justify-content:space-between;align-items:center}
+  .center{display:flex;align-items:center;justify-content:center}
+  .modal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:center;justify-content:center;z-index:40}
+  .modal.show{display:flex}
+  .modal-card{background:linear-gradient(180deg,#081726,#07141d);padding:18px;border-radius:12px;min-width:320px;border:1px solid rgba(255,255,255,0.04)}
+  .hero{font-weight:700;margin-bottom:10px}
+  .legend{color:var(--gold);font-weight:700}
+  .moral-meter{height:8px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden}
+  .moral-fill{height:100%;width:50%;background:linear-gradient(90deg,var(--gold),var(--accent))}
+  .danger{color:var(--danger);font-weight:700}
+  .resources-row{display:flex;gap:8px;flex-wrap:wrap}
+  .res{padding:6px;border-radius:8px;background:rgba(255,255,255,0.02);min-width:88px;text-align:center}
+  .help{font-size:13px;color:var(--muted);margin-top:8px}
+  .muted{color:var(--muted)}
+  @media (max-width:900px){.top-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>Zombie Survival — Snip Iland Escape</h1>
+      <div class="small">Text-based survival: accept survivors, manage base, explore, and survive 30 days to win.</div>
+    </div>
+  </header>
+
+  <div class="top-row">
+    <!-- Left: Stats & Actions -->
+    <div class="panel" style="flex:0.9">
+      <div class="stats-grid" style="margin-bottom:10px">
+        <div class="stat">
+          <div class="small">Day</div>
+          <div id="day" class="num">1</div>
+        </div>
+        <div class="stat">
+          <div class="small">Survivors</div>
+          <div id="survivorCount" class="num">1</div>
+        </div>
+        <div class="stat">
+          <div class="small">Morale</div>
+          <div id="morale" class="num">50</div>
+        </div>
+        <div class="stat">
+          <div class="small">Legendary chance</div>
+          <div id="legendChance" class="num">1/100</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <div style="flex:1">
+          <div class="small">Base Resources</div>
+          <div class="resources-row" style="margin-top:8px">
+            <div class="res"><div class="small">Food</div><div id="food" class="num">10</div></div>
+            <div class="res"><div class="small">Water</div><div id="water" class="num">10</div></div>
+            <div class="res"><div class="small">Ammo</div><div id="ammo" class="num">6</div></div>
+            <div class="res"><div class="small">Medicine</div><div id="med" class="num">3</div></div>
+          </div>
+        </div>
+
+        <div style="width:220px">
+          <div class="small">Base Defense</div>
+          <div style="margin-top:8px">
+            <div class="pill" id="defense">Level 1</div>
+          </div>
+          <div class="help">Defense reduces chance of losing survivors during attacks.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div style="flex:0.6" class="actions">
+          <button id="nextDayBtn" class="primary">Advance Day</button>
+          <button id="exploreBtn">Explore (Risky)</button>
+          <button id="scavengeBtn">Scavenge (Safer)</button>
+          <button id="checkGateBtn">Check Gate (Possible Survivor)</button>
+          <button id="upgradeDefBtn">Upgrade Defense (Costs resources)</button>
+        </div>
+
+        <div style="flex:1">
+          <div class="small">Base Log</div>
+          <div id="log" class="log"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Survivors -->
+    <div class="panel" style="flex:0.6">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div><strong>Survivors</strong></div>
+        <div class="small muted">Click a survivor to assign / view details</div>
+      </div>
+      <div id="survivors" class="survivors"></div>
+
+      <div style="margin-top:12px">
+        <div class="small">Morale</div>
+        <div class="moral-meter" style="margin-top:6px"><div id="moralFill" class="moral-fill"></div></div>
+        <div id="moraleText" class="small muted" style="margin-top:6px">Morale affects success rates.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="small muted">Hint: Survivors consume 1 food & 1 water per day. If you run out, people lose health and may die.</div>
+    <div><button id="resetBtn" class="warn">New Game</button></div>
+  </div>
+</div>
+
+<!-- Modal for Accept/Reject Survivor -->
+<div id="modal" class="modal">
+  <div class="modal-card">
+    <div id="modalContent">
+      <!-- Filled dynamically -->
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="modalReject">Reject</button>
+      <button id="modalAccept" class="primary">Accept</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JavaScript ===== -->
+<script>
+/*
+  Text-based Zombie Survival
+  - Survive 30 days to be taken to Snip Iland (win)
+  - Accept/reject survivors at gate; they may bring resources
+  - Survivors consume resources each day
+  - Explore (risky) and scavenge (safer)
+  - Random events
+  - 1/100 chance new survivor is legendary (x10 stats)
+*/
+
+// -------------------- Game State --------------------
+const STATE = {
+  day: 1,
+  survivors: [],
+  resources: { food: 10, water: 10, ammo: 6, med: 3 },
+  morale: 50, // 0 - 100
+  defenseLevel: 1,
+  logLimit: 200,
+  targetDaysToWin: 30,
+  gameOver: false
+};
+
+// -------------------- Utility Helpers --------------------
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function clamp(v, a=0, b=100){ return Math.max(a, Math.min(b, v)); }
+function log(msg, type='info'){
+  const el = document.getElementById('log');
+  const node = document.createElement('div');
+  node.className = 'entry';
+  node.innerHTML = `<div class="small">${new Date().toLocaleTimeString()}</div><div>${msg}</div>`;
+  el.prepend(node);
+  // trim
+  while(el.children.length > STATE.logLimit) el.removeChild(el.lastChild);
+}
+function updateUI(){
+  document.getElementById('day').textContent = STATE.day;
+  document.getElementById('survivorCount').textContent = STATE.survivors.length || 0;
+  document.getElementById('food').textContent = STATE.resources.food;
+  document.getElementById('water').textContent = STATE.resources.water;
+  document.getElementById('ammo').textContent = STATE.resources.ammo;
+  document.getElementById('med').textContent = STATE.resources.med;
+  document.getElementById('morale').textContent = STATE.morale;
+  document.getElementById('defense').textContent = `Level ${STATE.defenseLevel}`;
+  document.getElementById('legendChance').textContent = '1/100';
+  const fill = clamp(STATE.morale,0,100) + '%';
+  document.getElementById('moralFill').style.width = fill;
+  document.getElementById('moraleText').textContent = `Morale: ${STATE.morale} — affects success & willingness to stay.`;
+
+  // survivors list
+  const sWrap = document.getElementById('survivors');
+  sWrap.innerHTML = '';
+  STATE.survivors.forEach((s, idx) => {
+    const div = document.createElement('div');
+    div.className = 'survivor';
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:700">${s.name}${s.legend? ' <span class="legend">★</span>':''} <span class="small muted">[${s.role}]</span></div>
+        <div class="small muted">HP:${s.hp}/${s.maxHp}  |  Combat:${s.combat}  |  Scavenge:${s.scavenge}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="pill">${s.hunger? 'Hungry':''}</div>
+        <div style="margin-top:6px" class="small muted">Trust:${s.trust}</div>
+        <div style="margin-top:6px"><button onclick="assignTask(${idx})">Assign</button></div>
+      </div>
+    `;
+    sWrap.appendChild(div);
+  });
+}
+
+// -------------------- Survivor Factory --------------------
+const NAMES = ['Alex','Sam','Riley','Jordan','Casey','Morgan','Taylor','Jamie','Lee','Charlie','Robin','Avery','Quinn','Cameron'];
+const ROLES = ['Fighter','Medic','Scavenger','Engineer','Scout'];
+function makeSurvivor(overrides){
+  const base = {
+    name: NAMES[rand(0,NAMES.length-1)] + (rand(0,999)<10? ' Jr':''), // small variation
+    role: ROLES[rand(0,ROLES.length-1)],
+    hp: 10,
+    maxHp: 10,
+    combat: rand(1,4),
+    scavenge: rand(1,4),
+    trust: rand(30,80),
+    hunger: false,
+    legend: false
+  };
+  // 1/100 chance to become legend with x10 stats
+  if(rand(1,100) === 1){
+    base.legend = true;
+    base.hp = base.maxHp = 100;
+    base.combat *= 10;
+    base.scavenge *= 10;
+    base.trust = 100;
+  }
+
+  // roles buff
+  if(base.role === 'Medic'){ base.scavenge = Math.max(base.scavenge-1,1); base.combat = Math.max(base.combat-1,1); base.medBonus = 1; }
+  if(base.role === 'Scavenger'){ base.scavenge += 2; }
+  if(base.role === 'Engineer'){ base.trust += 5; }
+  return Object.assign(base, overrides || {});
+}
+
+// -------------------- Init Game --------------------
+function startNewGame(){
+  STATE.day = 1;
+  STATE.resources = { food: 12, water: 12, ammo: 6, med: 4 };
+  STATE.morale = 55;
+  STATE.defenseLevel = 1;
+  STATE.gameOver = false;
+  STATE.survivors = [];
+  // starting survivor = you (main)
+  const you = makeSurvivor({ name:'You', role:'Leader', combat:4, scavenge:3, trust:80, hp:20, maxHp:20 });
+  STATE.survivors.push(you);
+  document.getElementById('log').innerHTML = '';
+  log('Game started. You and your group must survive 30 days to reach Snip Iland.');
+  updateUI();
+}
+startNewGame();
+
+// -------------------- Game Actions --------------------
+function advanceDay(){
+  if(STATE.gameOver) return;
+  STATE.day++;
+  log(`Day ${STATE.day}: A new day dawns.`);
+  // daily consumption
+  const needFood = STATE.survivors.length;
+  const needWater = STATE.survivors.length;
+  if(STATE.resources.food >= needFood){
+    STATE.resources.food -= needFood;
+    log(`Consumed ${needFood} food.`);
+  } else {
+    const consumed = STATE.resources.food;
+    STATE.resources.food = 0;
+    log(`Ran out of food! Only ${consumed} consumed — people are hungry.`);
+    STATE.survivors.forEach(s => { s.hunger = true; s.hp -= 1; s.trust -= 2; });
+    STATE.morale = clamp(STATE.morale - rand(4,9));
+  }
+  if(STATE.resources.water >= needWater){
+    STATE.resources.water -= needWater;
+    log(`Consumed ${needWater} water.`);
+  } else {
+    const consumed = STATE.resources.water;
+    STATE.resources.water = 0;
+    log(`Ran out of water! People are thirsty.`);
+    STATE.survivors.forEach(s => { s.hunger = true; s.hp -= 2; s.trust -= 3; });
+    STATE.morale = clamp(STATE.morale - rand(6,12));
+  }
+
+  // small passive recovery if med available and someone injured
+  if(STATE.resources.med > 0){
+    STATE.survivors.forEach(s => {
+      if(s.hp < s.maxHp && STATE.resources.med > 0){
+        s.hp = Math.min(s.maxHp, s.hp + 2);
+        STATE.resources.med--;
+        log(`${s.name} used medicine and recovered 2 HP.`);
+      }
+    });
+  }
+
+  // random event
+  randomEvent();
+
+  // survivors with hp <= 0 die
+  checkDeaths();
+
+  // morale effects
+  if(STATE.morale <= 0) { STATE.morale = 0; }
+  if(STATE.morale >= 100) STATE.morale = 100;
+
+  // check win / lose
+  checkWinLose();
+
+  updateUI();
+}
+
+// Exploration (riskier)
+function explore(){
+  if(STATE.gameOver) return;
+  log('You send a team out to explore (risky).');
+  // pick a scavenger power = sum of scavenge stats of 2 best scavengers (or leader + best)
+  const sortedByScavenge = STATE.survivors.slice().sort((a,b)=>b.scavenge-a.scavenge);
+  const teamPower = (sortedByScavenge[0]?sortedByScavenge[0].scavenge:1) + (sortedByScavenge[1]?sortedByScavenge[1].scavenge:0);
+  const baseFind = rand(1,4);
+  const foundFood = Math.max(0, Math.floor((teamPower + baseFind) / 2) + rand(-1,3));
+  const foundWater = Math.max(0, Math.floor((teamPower + rand(0,3)) / 3) + rand(0,2));
+  const foundAmmo = Math.random() < 0.4 ? rand(0,3) : 0;
+  STATE.resources.food += foundFood;
+  STATE.resources.water += foundWater;
+  STATE.resources.ammo += foundAmmo;
+  log(`Exploration found Food:${foundFood}, Water:${foundWater}, Ammo:${foundAmmo}.`);
+
+  // chance encounter with zombies or raiders
+  const dangerRoll = rand(1,100) - Math.floor(STATE.morale/10) - (STATE.defenseLevel*2);
+  if(dangerRoll > 60){
+    // big trouble
+    const lossChances = rand(1,3);
+    for(let i=0;i<lossChances;i++){
+      if(STATE.survivors.length <= 1) break;
+      // chance to lose a survivor
+      if(Math.random() < 0.28 + (dangerRoll-60)/100){
+        // pick random not-you survivor (or any)
+        const idx = rand(0,STATE.survivors.length-1);
+        const s = STATE.survivors[idx];
+        // surviving but injured? 40% die
+        if(Math.random() < 0.4){
+          log(`Tragedy: ${s.name} was lost exploring (taken by zombies).`);
+          STATE.survivors.splice(idx,1);
+        } else {
+          s.hp = Math.max(0, s.hp - rand(2,6));
+          s.trust = Math.max(0, s.trust - rand(5,12));
+          log(`${s.name} was injured while exploring and lost HP.`);
+        }
+      }
+    }
+    // morale hit
+    STATE.morale = clamp(STATE.morale - rand(6,14));
+  } else {
+    // sometimes you rescue someone while exploring (small chance)
+    if(Math.random() < 0.12){
+      const newS = makeSurvivor();
+      // found resources with them
+      const bonusFood = rand(0,4);
+      STATE.resources.food += bonusFood;
+      STATE.survivors.push(newS);
+      log(`While exploring you rescued ${newS.name} (role: ${newS.role}). They brought +${bonusFood} food.`);
+    }
+    STATE.morale = clamp(STATE.morale + rand(1,5));
+  }
+
+  // 1 day passes automatically
+  advanceDay();
+}
+
+// Scavenge (safer)
+function scavenge(){
+  if(STATE.gameOver) return;
+  log('You send a small team to scavenge (safer).');
+  // team based on best scavenger
+  const best = STATE.survivors.reduce((a,b)=> a.scavenge > b.scavenge ? a : b, STATE.survivors[0]);
+  const foundFood = Math.max(0, rand(0,Math.ceil(best.scavenge*1.2)));
+  const foundWater = Math.max(0, rand(0,Math.ceil(best.scavenge*0.9)));
+  const foundMed = Math.random() < 0.2 ? 1 : 0;
+  STATE.resources.food += foundFood;
+  STATE.resources.water += foundWater;
+  STATE.resources.med += foundMed;
+  log(`Scavenging returned Food:${foundFood}, Water:${foundWater}, Med:${foundMed}.`);
+  // small risk
+  if(Math.random() < 0.12 - STATE.defenseLevel*0.01){
+    const s = STATE.survivors[rand(0,STATE.survivors.length-1)];
+    s.hp = Math.max(0, s.hp - rand(1,3));
+    log(`${s.name} was nicked while scavenging and lost some HP.`);
+    STATE.morale = clamp(STATE.morale - rand(1,4));
+  } else {
+    STATE.morale = clamp(STATE.morale + rand(0,3));
+  }
+  // consume half day? we treat as full day
+  advanceDay();
+}
+
+// Check Gate (possible survivor arrival)
+function checkGate(){
+  if(STATE.gameOver) return;
+  // 50% chance someone is at the gate
+  if(Math.random() < 0.5){
+    const candidate = makeSurvivor();
+    const brings = {
+      food: rand(0,4),
+      water: rand(0,3),
+      ammo: Math.random() < 0.3 ? rand(0,3) : 0,
+      med: Math.random() < 0.2 ? 1 : 0
+    };
+    // Prepare modal prompt
+    showModalCandidate(candidate, brings);
+  } else {
+    log('Checked the gate: nobody new arrived.');
+    // small morale penalty if empty?
+    STATE.morale = clamp(STATE.morale - rand(0,2));
+    updateUI();
+  }
+}
+
+// Accept/Reject from modal handlers
+function showModalCandidate(candidate, brings){
+  const modal = document.getElementById('modal');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `
+    <div class="hero">Person at the gate: <span style="font-weight:800">${candidate.name}</span> ${candidate.legend?'<span class="legend">★ Legendary</span>':''}</div>
+    <div class="small">Role: ${candidate.role}</div>
+    <div style="margin-top:8px" class="small muted">Stats — Combat: ${candidate.combat}, Scavenge: ${candidate.scavenge}, Trust: ${candidate.trust}</div>
+    <div style="margin-top:10px"><strong>They offer resources if accepted:</strong></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <div class="res"><div class="small">Food</div><div class="num">${brings.food}</div></div>
+      <div class="res"><div class="small">Water</div><div class="num">${brings.water}</div></div>
+      <div class="res"><div class="small">Ammo</div><div class="num">${brings.ammo}</div></div>
+      <div class="res"><div class="small">Med</div><div class="num">${brings.med}</div></div>
+    </div>
+    <div class="help">Accepting increases survivors but costs you in trust decisions; rejecting may lower morale.</div>
+  `;
+  modal.classList.add('show');
+
+  // attach handlers
+  const acceptBtn = document.getElementById('modalAccept');
+  const rejectBtn = document.getElementById('modalReject');
+
+  function cleanup(){
+    modal.classList.remove('show');
+    acceptBtn.onclick = null;
+    rejectBtn.onclick = null;
+  }
+  acceptBtn.onclick = () => {
+    cleanup();
+    // add resources & survivor
+    STATE.resources.food += brings.food;
+    STATE.resources.water += brings.water;
+    STATE.resources.ammo += brings.ammo;
+    STATE.resources.med += brings.med;
+    STATE.survivors.push(candidate);
+    log(`You accepted ${candidate.name} into the base. They brought some resources.`);
+    STATE.morale = clamp(STATE.morale + rand(1,8));
+    updateUI();
+  };
+  rejectBtn.onclick = () => {
+    cleanup();
+    log(`You refused to let ${candidate.name} in. They left.`);
+    STATE.morale = clamp(STATE.morale - rand(3,10));
+    updateUI();
+  };
+}
+
+// Upgrade defense
+function upgradeDefense(){
+  const costFood = 6 + STATE.defenseLevel * 4;
+  const costWater = 4 + STATE.defenseLevel * 2;
+  if(STATE.resources.food >= costFood && STATE.resources.water >= costWater){
+    STATE.resources.food -= costFood;
+    STATE.resources.water -= costWater;
+    STATE.defenseLevel++;
+    log(`Defense upgraded to level ${STATE.defenseLevel}.`);
+    STATE.morale = clamp(STATE.morale + rand(4,10));
+  } else {
+    log('Not enough resources to upgrade defense.', 'warn');
+    STATE.morale = clamp(STATE.morale - rand(1,3));
+  }
+  updateUI();
+}
+
+// Assign task placeholder (in future you can expand)
+function assignTask(idx){
+  const s = STATE.survivors[idx];
+  if(!s) return;
+  const tasks = ['Guard','Scavenge','Heal','Rest'];
+  const choice = tasks[rand(0,tasks.length-1)];
+  log(`${s.name} assigned to ${choice}.`);
+  // small immediate effect
+  if(choice === 'Guard') STATE.morale = clamp(STATE.morale + rand(0,3));
+  if(choice === 'Scavenge') { STATE.resources.food += rand(0,2); STATE.resources.water += rand(0,1);}
+  if(choice === 'Heal') { s.hp = Math.min(s.maxHp, s.hp + rand(1,4)); STATE.resources.med = Math.max(0, STATE.resources.med- (Math.random()<0.4 ? 1:0)); }
+  updateUI();
+}
+
+// Check random daily events
+function randomEvent(){
+  if(STATE.gameOver) return;
+  // bigger events as days progress
+  const dayFactor = Math.min(STATE.day / 10, 3);
+  const roll = rand(1,100);
+  if(roll < 12){
+    // zombie horde attack at base
+    log('A zombie horde approached the base!');
+    const defense = STATE.defenseLevel * 10 + STATE.survivors.reduce((a,b)=>a+b.combat,0);
+    const strength = rand(10,60) + Math.floor(dayFactor*10);
+    if(strength > defense){
+      // lose resources / survivors
+      const losses = rand(0, Math.min(2, STATE.survivors.length-1));
+      for(let i=0;i<losses;i++){
+        const idx = rand(0,STATE.survivors.length-1);
+        const s = STATE.survivors[idx];
+        if(Math.random() < 0.6 - STATE.defenseLevel*0.05){
+          log(`${s.name} was taken during the horde attack!`);
+          STATE.survivors.splice(idx,1);
+        } else {
+          s.hp = Math.max(0, s.hp - rand(2,7));
+          log(`${s.name} survived the attack but was injured.`);
+        }
+      }
+      // resource loss
+      const lostFood = Math.min(STATE.resources.food, rand(0,4));
+      const lostWater = Math.min(STATE.resources.water, rand(0,3));
+      STATE.resources.food -= lostFood;
+      STATE.resources.water -= lostWater;
+      log(`During the attack you lost Food:${lostFood}, Water:${lostWater}.`);
+      STATE.morale = clamp(STATE.morale - rand(8,16));
+    } else {
+      log('Your defenses held off the horde. Well done!');
+      STATE.morale = clamp(STATE.morale + rand(3,9));
+    }
+  } else if(roll < 20){
+    // raiders
+    log('A group of raiders tried to take supplies.');
+    if(Math.random() < 0.5 - STATE.defenseLevel*0.04 + (50-STATE.morale)/200){
+      // they steal
+      const stolenFood = Math.min(STATE.resources.food, rand(1,5));
+      STATE.resources.food -= stolenFood;
+      log(`Raiders stole Food:${stolenFood}.`);
+      STATE.morale = clamp(STATE.morale - rand(6,12));
+    } else {
+      log('You repelled the raiders.');
+      STATE.morale = clamp(STATE.morale + rand(2,6));
+    }
+  } else if(roll < 26){
+    // weather
+    const wet = Math.random() < 0.5;
+    if(wet){
+      log('Heavy rain reduces visibility. Scavenging becomes harder today.');
+      // effect already applied in scavenge/explore randomness
+    } else {
+      log('A clear day. Scavenging will be easier.');
+    }
+  } else if(roll < 30){
+    // supply cache found nearby
+    const f = rand(1,6);
+    STATE.resources.food += f;
+    log(`A hidden cache nearby! You recovered Food:${f}.`);
+    STATE.morale = clamp(STATE.morale + rand(2,6));
+  } else if(roll < 32){
+    // special rare event: mechanic builds something
+    log('A wandering engineer fixed part of your fortifications, improving defenses slightly.');
+    STATE.defenseLevel = Math.min(STATE.defenseLevel + 1, 10);
+    STATE.morale = clamp(STATE.morale + 8);
+  }
+}
+
+// check deaths
+function checkDeaths(){
+  for(let i=STATE.survivors.length-1;i>=0;i--){
+    const s = STATE.survivors[i];
+    if(s.hp <= 0){
+      log(`${s.name} has died.`);
+      STATE.survivors.splice(i,1);
+      STATE.morale = clamp(STATE.morale - rand(6,12));
+    }
+  }
+  updateUI();
+}
+
+// check win/lose
+function checkWinLose(){
+  if(STATE.survivors.length === 0){
+    STATE.gameOver = true;
+    log('All survivors are gone... You failed to survive. GAME OVER.');
+    alert('All survivors have perished. Game Over.');
+    return;
+  }
+  if(STATE.day >= STATE.targetDaysToWin){
+    STATE.gameOver = true;
+    log('You survived long enough. A rescue plane arrives and you are taken to Snip Iland — you win!');
+    alert('You were taken to Snip Iland — YOU WIN!');
+    return;
+  }
+  // other lose conditions (very low resources causing all to die eventually)
+  if(STATE.resources.food <= 0 && STATE.resources.water <= 0 && STATE.survivors.every(s=>s.hp<=1)){
+    STATE.gameOver = true;
+    log('With no resources and everyone near-death, the group could not continue. GAME OVER.');
+    alert('Game Over.');
+  }
+}
+
+// reset game
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Start a new game? Current progress will be lost.')){
+    startNewGame();
+  }
+});
+
+// button bindings
+document.getElementById('nextDayBtn').addEventListener('click', ()=>advanceDay());
+document.getElementById('exploreBtn').addEventListener('click', ()=>explore());
+document.getElementById('scavengeBtn').addEventListener('click', ()=>scavenge());
+document.getElementById('checkGateBtn').addEventListener('click', ()=>checkGate());
+document.getElementById('upgradeDefBtn').addEventListener('click', ()=>upgradeDefense());
+
+// small autosave to localStorage so reloading restores state (not required)
+function saveState(){
+  try{
+    localStorage.setItem('zombieState', JSON.stringify(STATE));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem('zombieState');
+    if(!raw) return false;
+    const obj = JSON.parse(raw);
+    // basic validation
+    if(obj && typeof obj.day === 'number'){
+      Object.assign(STATE, obj);
+      log('Loaded saved game state.');
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+if(loadState()){ updateUI(); } else { startNewGame(); }
+setInterval(saveState, 5000);
+
+// expose assignTask globally
+window.assignTask = assignTask;
+
+</script>
+</body>
+</html>
