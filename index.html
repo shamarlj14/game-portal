@@ -334,6 +334,25 @@
   </style>
 </head>
 <body>
+
+  <div id="onlineCount">Online: Loading...</div>
+
+<script>
+  async function updateOnlineCount() {
+    try {
+      // Replace "sniplays" and "gameportal" with your own unique namespace and key
+      const res = await fetch('https://api.countapi.xyz/hit/sniplays/gameportal');
+      const data = await res.json();
+      document.getElementById('onlineCount').textContent = `Total Visits: ${data.value}`;
+    } catch (err) {
+      console.error(err);
+      document.getElementById('onlineCount').textContent = `Error loading count`;
+    }
+  }
+
+  updateOnlineCount();
+</script>
+
   <div class="news-contact">
   <h2>📢 News & Contact</h2>
   <p><strong>Latest Update:</strong> Welcome to <span class="highlight">Sniplays</span>! I'm adding new games and fixing bugs. Stay tuned for exciting updates!</p>
